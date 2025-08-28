@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using RpgRooms.Core.Application.Interfaces;
-using RpgRooms.Core.Application.Services;
+using RpgRooms.Infrastructure.Services;
 using RpgRooms.Core.Security;
 using RpgRooms.Infrastructure.Data;
 using RpgRooms.Web.Authorization;
