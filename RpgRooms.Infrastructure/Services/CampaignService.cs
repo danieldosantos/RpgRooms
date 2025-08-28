@@ -5,7 +5,7 @@ using RpgRooms.Core.Domain.Entities;
 using RpgRooms.Core.Domain.Enums;
 using RpgRooms.Infrastructure.Data;
 
-namespace RpgRooms.Core.Application.Services;
+namespace RpgRooms.Infrastructure.Services;
 
 public class CampaignService : ICampaignService
 {

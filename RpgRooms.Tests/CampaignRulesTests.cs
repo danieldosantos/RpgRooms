@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using RpgRooms.Core.Application.Services;
+using RpgRooms.Infrastructure.Services;
 using RpgRooms.Infrastructure.Data;
 using Xunit;
 
