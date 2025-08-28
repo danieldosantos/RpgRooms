@@ -20,6 +20,37 @@ else
     {
         <button class="btn" @onclick="ToggleRecruitment">Alternar Recrutamento</button>
         <button class="btn" @onclick="FinalizeCampaign" style="margin-left:8px">Finalizar Campanha</button>
+
+        <h4>Solicitações Pendentes</h4>
+        @if (joinRequests.Count == 0)
+        {
+            <p>Nenhuma solicitação.</p>
+        }
+        else
+        {
+            @foreach (var r in joinRequests)
+            {
+                <div>@r.UserId (@r.Message)
+                    <button class="btn" @onclick="() => Approve(r.Id)">Aprovar</button>
+                    <button class="btn" @onclick="() => Reject(r.Id)" style="margin-left:4px">Rejeitar</button>
+                </div>
+            }
+        }
+
+        <h4>Membros</h4>
+        @if (members.Count == 0)
+        {
+            <p>Nenhum membro.</p>
+        }
+        else
+        {
+            @foreach (var m in members)
+            {
+                <div>@m.UserId
+                    <button class="btn" @onclick="() => Kick(m.UserId)" style="margin-left:4px">Remover</button>
+                </div>
+            }
+        }
     }
     else if (campaign.IsRecruiting)
     {
@@ -48,6 +79,8 @@ else
 
     Campaign? campaign;
     List<ChatMessageDto> messages = new();
+    List<JoinRequest> joinRequests = new();
+    List<CampaignMember> members = new();
     string message = string.Empty;
     string displayName = string.Empty;
     bool sentAsCharacter;
@@ -60,6 +93,11 @@ else
         campaign = await Http.GetFromJsonAsync<Campaign>($"/api/campaigns/{id}");
         await JS.InvokeVoidAsync("chat.join", id.ToString(), DotNetObjectReference.Create(this));
         await RefreshIsGm();
+        if (isGm)
+        {
+            await LoadJoinRequests();
+            await LoadMembers();
+        }
     }
 
     private async Task RefreshIsGm()
@@ -67,6 +105,16 @@ else
         var c = await Http.GetFromJsonAsync<Campaign>($"/api/campaigns/{id}");
         var me = (await AuthStateTask)!.User.Identity!.Name;
         isGm = c?.OwnerUserId == me;
+    }
+
+    private async Task LoadJoinRequests()
+    {
+        joinRequests = await Http.GetFromJsonAsync<List<JoinRequest>>($"/api/campaigns/{id}/join-requests") ?? new();
+    }
+
+    private async Task LoadMembers()
+    {
+        members = await Http.GetFromJsonAsync<List<CampaignMember>>($"/api/campaigns/{id}/members") ?? new();
     }
 
     [JSInvokable]
@@ -103,6 +151,28 @@ else
     {
         var res = await Http.PostAsJsonAsync($"/api/campaigns/{id}/join-requests", new { Message = "Gostaria de participar" });
         res.EnsureSuccessStatusCode();
+    }
+
+    private async Task Approve(Guid reqId)
+    {
+        var res = await Http.PutAsync($"/api/campaigns/{id}/join-requests/{reqId}/approve", null);
+        res.EnsureSuccessStatusCode();
+        await LoadJoinRequests();
+        await LoadMembers();
+    }
+
+    private async Task Reject(Guid reqId)
+    {
+        var res = await Http.PutAsync($"/api/campaigns/{id}/join-requests/{reqId}/reject", null);
+        res.EnsureSuccessStatusCode();
+        await LoadJoinRequests();
+    }
+
+    private async Task Kick(string userId)
+    {
+        var res = await Http.DeleteAsync($"/api/campaigns/{id}/members/{userId}");
+        res.EnsureSuccessStatusCode();
+        await LoadMembers();
     }
 
     private async Task Send()
