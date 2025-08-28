@@ -59,18 +59,31 @@ RpgRooms/
 
 ---
 
-## 🚀 Como Rodar (Dev)
-```powershell
-# abra um terminal na pasta do projeto
-cd RpgRooms/RpgRooms.Web
+## 🚀 Passo a Passo (Dev)
+```bash
+# 1. (Opcional) clonar o repositório e entrar na pasta
+git clone https://github.com/<usuario>/RpgRooms.git
+cd RpgRooms
+
+# 2. Restaurar dependências
+dotnet restore
+
+# 3. (Opcional) compilar o projeto inteiro
+dotnet build
+
+# 4. Executar os testes
+dotnet test
+
+# 5. Rodar a aplicação web
+cd RpgRooms.Web
 dotnet run
 ```
 - Acesse o endereço que o console indicar (ex.: `http://localhost:5000`).
 - **Login dev**: `admin` / `admin` (gerado pelo seeder **apenas em Development**).
 - O banco **SQLite** será criado como `rpgrooms.db` no diretório de execução.
 
-> Se quiser HTTPS em dev, você pode confiar o certificado:
-> ```powershell
+> Para habilitar HTTPS em desenvolvimento:
+> ```bash
 > dotnet dev-certs https --trust
 > ```
 
