@@ -121,6 +121,26 @@ public class CampaignService : ICampaignService
         await Audit("RejectJoin", gmUserId, campaignId, new { req.UserId });
     }
 
+    public async Task<IReadOnlyList<JoinRequest>> ListJoinRequestsAsync(Guid campaignId, string gmUserId)
+    {
+        var c = await _db.Campaigns.FindAsync(campaignId) ?? throw new InvalidOperationException("Campanha não encontrada");
+        if (c.OwnerUserId != gmUserId) throw new UnauthorizedAccessException("Apenas o GM pode ver solicitações.");
+        return await _db.JoinRequests
+            .Where(r => r.CampaignId == campaignId && r.Status == JoinRequestStatus.Pending)
+            .OrderBy(r => r.CreatedAt)
+            .ToListAsync();
+    }
+
+    public async Task<IReadOnlyList<CampaignMember>> ListMembersAsync(Guid campaignId, string gmUserId)
+    {
+        var c = await _db.Campaigns.FindAsync(campaignId) ?? throw new InvalidOperationException("Campanha não encontrada");
+        if (c.OwnerUserId != gmUserId) throw new UnauthorizedAccessException("Apenas o GM pode ver membros.");
+        return await _db.CampaignMembers
+            .Where(m => m.CampaignId == campaignId && !m.IsBanned)
+            .OrderBy(m => m.JoinedAt)
+            .ToListAsync();
+    }
+
     public async Task RemoveMemberAsync(Guid campaignId, string targetUserId, string gmUserId, string? reason = null)
     {
         var c = await _db.Campaigns.FirstAsync(x => x.Id == campaignId);

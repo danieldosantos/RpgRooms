@@ -50,6 +50,20 @@ public static class CampaignEndpoints
             return Results.Ok();
         });
 
+        g.MapGet("{id:guid}/join-requests", async (Guid id, ICampaignService svc, HttpContext http) =>
+        {
+            var userId = http.User.Identity!.Name!;
+            var list = await svc.ListJoinRequestsAsync(id, userId);
+            return Results.Ok(list);
+        });
+
+        g.MapGet("{id:guid}/members", async (Guid id, ICampaignService svc, HttpContext http) =>
+        {
+            var userId = http.User.Identity!.Name!;
+            var list = await svc.ListMembersAsync(id, userId);
+            return Results.Ok(list);
+        });
+
         g.MapDelete("{id:guid}/members/{targetUserId}", async (Guid id, string targetUserId, ICampaignService svc, HttpContext http, string? reason) =>
         {
             var userId = http.User.Identity!.Name!;
