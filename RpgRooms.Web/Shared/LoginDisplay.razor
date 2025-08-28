@@ -1,0 +1,14 @@
+@using Microsoft.AspNetCore.Components.Authorization
+<AuthorizeView>
+    <Authorized>
+        <span>Olá, @context.User.Identity?.Name!</span>
+        <a href="/Identity/Account/Manage">Conta</a>
+        <form method="post" action="/Identity/Account/Logout" style="display:inline">
+            <button type="submit">Sair</button>
+        </form>
+    </Authorized>
+    <NotAuthorized>
+        <a href="/Identity/Account/Login">Entrar</a>
+        <a href="/Identity/Account/Register">Registrar</a>
+    </NotAuthorized>
+</AuthorizeView>

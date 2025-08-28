@@ -1,0 +1,12 @@
+**/[Bb]in/
+**/[Oo]bj/
+.vs/
+.vscode/
+node_modules/
+*.log
+*.env
+*.db
+*.db-shm
+*.db-wal
+**/publish/
+**/TestResults/

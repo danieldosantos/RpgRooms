@@ -1,0 +1,42 @@
+@page "/campaigns/create"
+@attribute [Authorize]
+@inject HttpClient Http
+@inject NavigationManager Nav
+
+<h3>Criar Campanha</h3>
+
+<div>
+    <label>Nome</label>
+    <input @bind="name" maxlength="80" />
+</div>
+<div>
+    <label>Descrição</label>
+    <textarea @bind="description" maxlength="1000"></textarea>
+</div>
+<button class="btn" @onclick="Create">Criar</button>
+
+@if (!string.IsNullOrEmpty(error))
+{
+    <p style="color:red">@error</p>
+}
+
+@code {
+    string name = string.Empty;
+    string? description;
+    string? error;
+
+    async Task Create()
+    {
+        try
+        {
+            var res = await Http.PostAsJsonAsync("/api/campaigns", new { Name = name, Description = description });
+            res.EnsureSuccessStatusCode();
+            var c = await res.Content.ReadFromJsonAsync<Campaign>();
+            Nav.NavigateTo($"/campaigns/{c!.Id}");
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+        }
+    }
+}

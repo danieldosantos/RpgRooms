@@ -1,0 +1,119 @@
+@page "/campaigns/{id:guid}"
+@using Microsoft.AspNetCore.Components.Web
+@attribute [Authorize]
+@inject HttpClient Http
+@inject NavigationManager Nav
+@inject IJSRuntime JS
+@using RpgRooms.Core.Application.DTOs
+
+<h3>@campaign?.Name</h3>
+@if (campaign is null)
+{
+    <p>Carregando...</p>
+}
+else
+{
+    <p>@campaign.Description</p>
+    <p>Status: <b>@campaign.Status</b> — @(campaign.IsRecruiting ? "Recrutando" : "Fechada")</p>
+
+    @if (isGm)
+    {
+        <button class="btn" @onclick="ToggleRecruitment">Alternar Recrutamento</button>
+        <button class="btn" @onclick="FinalizeCampaign" style="margin-left:8px">Finalizar Campanha</button>
+    }
+    else if (campaign.IsRecruiting)
+    {
+        <button class="btn" @onclick="SendJoinRequest">Solicitar Participação</button>
+    }
+
+    <hr />
+    <h4>Chat</h4>
+    <label>Nome para exibir</label>
+    <input @bind="displayName" />
+    <label style="margin-left:8px"><input type="checkbox" @bind="sentAsCharacter" /> Enviar como personagem</label>
+
+    <div class="chat-box">
+        @foreach (var m in messages)
+        {
+            <div><b>@m.DisplayName</b>: @m.Content <small>(@m.CreatedAt.LocalDateTime)</small></div>
+        }
+    </div>
+
+    <input @bind="message" @onkeydown="HandleKey" placeholder="Digite uma mensagem..." />
+    <button class="btn" @onclick="Send">Enviar</button>
+}
+
+@code {
+    [Parameter] public Guid id { get; set; }
+
+    Campaign? campaign;
+    List<ChatMessageDto> messages = new();
+    string message = string.Empty;
+    string displayName = string.Empty;
+    bool sentAsCharacter;
+    bool isGm;
+
+    [CascadingParameter] public Task<AuthenticationState> AuthStateTask { get; set; } = default!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        campaign = await Http.GetFromJsonAsync<Campaign>($"/api/campaigns/{id}");
+        await JS.InvokeVoidAsync("chat.join", id.ToString(), DotNetObjectReference.Create(this));
+        await RefreshIsGm();
+    }
+
+    private async Task RefreshIsGm()
+    {
+        var c = await Http.GetFromJsonAsync<Campaign>($"/api/campaigns/{id}");
+        var me = (await AuthStateTask)!.User.Identity!.Name;
+        isGm = c?.OwnerUserId == me;
+    }
+
+    [JSInvokable]
+    public Task OnReceiveMessage(ChatMessageDto dto)
+    {
+        messages.Add(dto);
+        StateHasChanged();
+        return Task.CompletedTask;
+    }
+
+    [JSInvokable]
+    public Task OnSystemNotice(string text)
+    {
+        messages.Add(new ChatMessageDto(Guid.Empty, "Sistema", text, false, DateTimeOffset.UtcNow));
+        StateHasChanged();
+        return Task.CompletedTask;
+    }
+
+    private async Task ToggleRecruitment()
+    {
+        var res = await Http.PutAsync($"/api/campaigns/{id}/recruitment/toggle", null);
+        res.EnsureSuccessStatusCode();
+        campaign = await Http.GetFromJsonAsync<Campaign>($"/api/campaigns/{id}");
+    }
+
+    private async Task FinalizeCampaign()
+    {
+        var res = await Http.PutAsync($"/api/campaigns/{id}/finalize", null);
+        res.EnsureSuccessStatusCode();
+        campaign = await Http.GetFromJsonAsync<Campaign>($"/api/campaigns/{id}");
+    }
+
+    private async Task SendJoinRequest()
+    {
+        var res = await Http.PostAsJsonAsync($"/api/campaigns/{id}/join-requests", new { Message = "Gostaria de participar" });
+        res.EnsureSuccessStatusCode();
+    }
+
+    private async Task Send()
+    {
+        if (string.IsNullOrWhiteSpace(message)) return;
+        await JS.InvokeVoidAsync("chat.send", id.ToString(), displayName, message, sentAsCharacter);
+        message = string.Empty;
+    }
+
+    private async Task HandleKey(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter") await Send();
+    }
+}
