@@ -10,9 +10,18 @@ window.chat = (function(){
       connection = new signalR.HubConnectionBuilder().withUrl('/hubs/campaign-chat').build();
       connection.on('ReceiveMessage', dto => dotnetObj && dotnetObj.invokeMethodAsync('OnReceiveMessage', dto));
       connection.on('SystemNotice', text => dotnetObj && dotnetObj.invokeMethodAsync('OnSystemNotice', text));
-      await connection.start();
+      try {
+        await connection.start();
+      } catch (err) {
+        console.error('Falha ao conectar ao SignalR', err);
+        return;
+      }
     }
-    await connection.invoke('JoinCampaignGroup', campaignId);
+    try {
+      await connection.invoke('JoinCampaignGroup', campaignId);
+    } catch (err) {
+      console.error('Falha ao entrar no grupo', err);
+    }
   }
   return {
     async join(campaignId, objRef){ dotnetObj = objRef; await ensure(campaignId); },
