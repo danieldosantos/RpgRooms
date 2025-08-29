@@ -30,11 +30,23 @@ window.chat = (function(){
     }
   }
   return {
-    async join(campaignId, objRef){ dotnetObj = objRef; await ensure(campaignId); },
-    async send(campaignId, displayName, content, sentAsCharacter){
-      await ensure(campaignId);
-      await connection.invoke('SendMessage', campaignId, displayName, content, sentAsCharacter);
+      async join(campaignId, objRef){ dotnetObj = objRef; await ensure(campaignId); },
+      async send(campaignId, displayName, content, sentAsCharacter){
+        await ensure(campaignId);
+        await connection.invoke('SendMessage', campaignId, displayName, content, sentAsCharacter);
+      },
+      async leave(){
+        dotnetObj = null;
+        currentCampaignId = null;
+        if(connection){
+          try {
+            await connection.stop();
+          } catch (err) {
+            console.error('Falha ao desconectar do SignalR', err);
+          }
+          connection = null;
+        }
+      }
     }
-  }
-})();
+  })();
 
