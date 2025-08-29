@@ -73,6 +73,7 @@ public class CampaignService : ICampaignService
         if (members.Any())
             _db.CampaignMembers.RemoveRange(members);
 
+        c.OwnerUserId = null;
         await _db.SaveChangesAsync();
 
         foreach (var m in members)
@@ -215,7 +216,7 @@ public class CampaignService : ICampaignService
     public async Task<bool> IsGmAsync(Guid campaignId, string userId)
     {
         var c = await _db.Campaigns.FindAsync(campaignId);
-        return c != null && c.OwnerUserId == userId;
+        return c != null && !string.IsNullOrEmpty(c.OwnerUserId) && c.OwnerUserId == userId;
     }
 
     public Task<int> CountMembersAsync(Guid campaignId) =>

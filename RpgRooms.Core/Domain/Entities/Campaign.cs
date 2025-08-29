@@ -13,8 +13,7 @@ public class Campaign
     [StringLength(1000)]
     public string? Description { get; set; }
 
-    [Required]
-    public string OwnerUserId { get; set; } = string.Empty; // GM
+    public string? OwnerUserId { get; set; } // GM
 
     public CampaignStatus Status { get; set; } = CampaignStatus.InProgress;
     public bool IsRecruiting { get; set; } = false;
