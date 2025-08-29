@@ -13,5 +13,6 @@
   <ItemGroup>
     <ProjectReference Include="..\RpgRooms.Core\RpgRooms.Core.csproj" />
     <ProjectReference Include="..\RpgRooms.Infrastructure\RpgRooms.Infrastructure.csproj" />
+    <ProjectReference Include="..\RpgRooms.Web\RpgRooms.Web.csproj" />
   </ItemGroup>
 </Project>
