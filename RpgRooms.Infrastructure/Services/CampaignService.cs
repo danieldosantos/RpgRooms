@@ -184,11 +184,11 @@ public class CampaignService : ICampaignService
 
     public async Task<IReadOnlyList<ChatMessage>> ListChatMessagesAsync(Guid campaignId)
     {
+        // SQLite does not support ordering by DateTimeOffset, so we order in-memory
         var list = await _db.ChatMessages
             .Where(m => m.CampaignId == campaignId)
-            .OrderBy(m => m.CreatedAt)
             .ToListAsync();
-        return list;
+        return list.OrderBy(m => m.CreatedAt).ToList();
     }
 
     public Task<bool> IsMemberAsync(Guid campaignId, string userId) =>
