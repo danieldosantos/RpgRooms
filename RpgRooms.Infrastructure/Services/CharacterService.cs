@@ -80,6 +80,24 @@ public class CharacterService : ICharacterService
         return c is null ? null : BuildSheet(c);
     }
 
+    public async Task DeleteCharacterAsync(Guid id, string userId)
+    {
+        var existing = await _db.Characters
+            .Include(c => c.SavingThrowProficiencies)
+            .Include(c => c.SkillProficiencies)
+            .FirstOrDefaultAsync(c => c.Id == id)
+            ?? throw new InvalidOperationException("Ficha não encontrada");
+
+        var campaign = await _db.Campaigns.FindAsync(existing.CampaignId);
+        if (existing.UserId != userId && campaign?.OwnerUserId != userId)
+            throw new UnauthorizedAccessException("Apenas o dono ou o GM podem excluir a ficha.");
+
+        _db.SavingThrowProficiencies.RemoveRange(existing.SavingThrowProficiencies);
+        _db.SkillProficiencies.RemoveRange(existing.SkillProficiencies);
+        _db.Characters.Remove(existing);
+        await _db.SaveChangesAsync();
+    }
+
     private CharacterSheetDto BuildSheet(Character c)
     {
         var modifiers = new Dictionary<string, int>

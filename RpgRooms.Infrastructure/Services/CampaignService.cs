@@ -118,6 +118,19 @@ public class CampaignService : ICampaignService
         req.Status = JoinRequestStatus.Approved;
         req.DecisionAt = DateTimeOffset.UtcNow;
         _db.CampaignMembers.Add(new CampaignMember { CampaignId = campaignId, UserId = req.UserId });
+        _db.Characters.Add(new Character
+        {
+            CampaignId = campaignId,
+            UserId = req.UserId,
+            Name = "New Character",
+            Level = 1,
+            Str = 10,
+            Dex = 10,
+            Con = 10,
+            Int = 10,
+            Wis = 10,
+            Cha = 10
+        });
         await _db.SaveChangesAsync();
         await Audit("ApproveJoin", gmUserId, campaignId, new { req.UserId });
 
