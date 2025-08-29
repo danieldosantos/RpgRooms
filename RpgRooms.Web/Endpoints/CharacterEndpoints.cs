@@ -31,7 +31,10 @@ public static class CharacterEndpoints
             var isGm = (await auth.AuthorizeAsync(http.User, null, Policies.IsGmOfCampaign)).Succeeded;
             if (!isGm && !await campSvc.IsMemberAsync(id, userId))
                 return Results.Forbid();
-            character.UserId = userId;
+
+            // Only GMs may create characters for other users. For regular players,
+            // the UserId is always set to the caller to prevent impersonation.
+            character.UserId = isGm ? character.UserId : userId;
             character.CampaignId = id;
             var sheet = await charSvc.CreateCharacterAsync(character);
             return Results.Ok(sheet);
