@@ -1,10 +1,16 @@
 @using Microsoft.AspNetCore.Components.Authorization
+@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery AntiForgery
+@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
+@{
+    var tokens = AntiForgery.GetAndStoreTokens(HttpContextAccessor.HttpContext!);
+}
 
 <AuthorizeView>
     <Authorized>
         <span>Olá, @context.User.Identity?.Name!</span>
         <a href="/Identity/Account/Manage">Conta</a>
         <form method="post" action="/Identity/Account/Logout" style="display:inline">
+            <input type="hidden" name="__RequestVerificationToken" value="@tokens.RequestToken" />
             <input type="hidden" name="returnUrl" value="/Identity/Account/Login" />
             <button type="submit">Sair</button>
         </form>
