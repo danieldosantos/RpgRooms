@@ -16,7 +16,7 @@ public class Campaign
     [Required]
     public string OwnerUserId { get; set; } = string.Empty; // GM
 
-    public CampaignStatus Status { get; set; } = CampaignStatus.Draft;
+    public CampaignStatus Status { get; set; } = CampaignStatus.InProgress;
     public bool IsRecruiting { get; set; } = false;
     public int MaxPlayers { get; set; } = 50; // regra fixa
 

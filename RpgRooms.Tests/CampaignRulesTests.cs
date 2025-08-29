@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using RpgRooms.Infrastructure.Services;
 using RpgRooms.Infrastructure.Data;
+using RpgRooms.Core.Domain.Enums;
 using Xunit;
 
 public class CampaignRulesTests
@@ -31,5 +32,15 @@ public class CampaignRulesTests
         var camp2 = await svc.CreateCampaignAsync("gm", "A", "desc2");
         Assert.Equal(camp1.Id, camp2.Id);
         Assert.Equal(1, await db.Campaigns.CountAsync());
+    }
+
+    [Fact]
+    public async Task StatusInicialEhInProgress()
+    {
+        var opts = new DbContextOptionsBuilder<AppDbContext>().UseInMemoryDatabase("t3").Options;
+        var db = new AppDbContext(opts);
+        var svc = new CampaignService(db);
+        var camp = await svc.CreateCampaignAsync("gm", "A", "B");
+        Assert.Equal(CampaignStatus.InProgress, camp.Status);
     }
 }

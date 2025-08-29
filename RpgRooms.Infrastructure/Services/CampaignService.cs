@@ -26,7 +26,7 @@ public class CampaignService : ICampaignService
             OwnerUserId = ownerUserId,
             Name = name,
             Description = description,
-            Status = CampaignStatus.Draft,
+            Status = CampaignStatus.InProgress,
             IsRecruiting = false,
             MaxPlayers = MAX_PLAYERS
         };
@@ -48,7 +48,7 @@ public class CampaignService : ICampaignService
             throw new InvalidOperationException("Campanha lotada (50/50).");
 
         c.IsRecruiting = !c.IsRecruiting;
-        if (c.IsRecruiting && c.Status == CampaignStatus.Draft)
+        if (c.IsRecruiting && c.Status == CampaignStatus.InProgress)
             c.Status = CampaignStatus.Recruiting;
         if (!c.IsRecruiting && c.Status == CampaignStatus.Recruiting && count > 0)
             c.Status = CampaignStatus.InProgress;
