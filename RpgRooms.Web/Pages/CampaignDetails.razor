@@ -56,7 +56,9 @@ else
             {
                 @foreach (var r in joinRequests)
                 {
-                    <div>@r.UserId (@r.Message)
+                    <div>
+                        <div>@r.UserId</div>
+                        <p class="join-request-message">@r.Message</p>
                         <button class="btn" @onclick="() => Approve(r.Id)">Aprovar</button>
                         <button class="btn" @onclick="() => Reject(r.Id)" style="margin-left:4px">Rejeitar</button>
                     </div>
