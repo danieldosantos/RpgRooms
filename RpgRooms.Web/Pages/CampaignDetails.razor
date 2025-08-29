@@ -42,6 +42,11 @@ else
         <p>@campaign.Description</p>
         <p>Status: <b>@campaign.Status</b> — @(campaign.IsRecruiting ? "Recrutando" : "Fechada")</p>
 
+        @if (isMember && !isGm)
+        {
+            <button class="btn" @onclick="Leave">Sair da campanha</button>
+        }
+
         @if (isGm)
         {
             <button class="btn" @onclick="ToggleRecruitment">Alternar Recrutamento</button>
@@ -278,6 +283,13 @@ else
         var res = await Http.DeleteAsync($"/api/campaigns/{id}/members/{userId}");
         res.EnsureSuccessStatusCode();
         await LoadMembers();
+    }
+
+    private async Task Leave()
+    {
+        var res = await Http.DeleteAsync($"/api/campaigns/{id}/leave");
+        res.EnsureSuccessStatusCode();
+        Nav.NavigateTo("/campaigns/mine", true);
     }
 
     private async Task Send()
