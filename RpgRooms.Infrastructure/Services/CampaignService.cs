@@ -159,7 +159,10 @@ public class CampaignService : ICampaignService
         if (recruitingOnly) q = q.Where(c => c.IsRecruiting);
         if (!string.IsNullOrWhiteSpace(ownerUserId)) q = q.Where(c => c.OwnerUserId == ownerUserId);
         if (!string.IsNullOrWhiteSpace(status) && Enum.TryParse<CampaignStatus>(status, out var st)) q = q.Where(c => c.Status == st);
-        return await q.OrderByDescending(c => c.CreatedAt).ToListAsync();
+
+        // SQLite does not support ordering by DateTimeOffset, so we order in-memory
+        var list = await q.ToListAsync();
+        return list.OrderByDescending(c => c.CreatedAt).ToList();
     }
 
     public Task<Campaign?> GetCampaignAsync(Guid campaignId) => _db.Campaigns.FirstOrDefaultAsync(c => c.Id == campaignId);
