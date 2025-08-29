@@ -8,7 +8,7 @@
         <input type="number" class="rpg-input" @bind="Character.Str" />
     }
     else { <span>@Character.Str</span> }
-    <span>Mod: @GetMod(Character.Str)</span>
+    <span>Mod: @Character.GetAbilityModifier("Str")</span>
   </div>
   <div>
     <label>Destreza:</label>
@@ -17,7 +17,7 @@
         <input type="number" class="rpg-input" @bind="Character.Dex" />
     }
     else { <span>@Character.Dex</span> }
-    <span>Mod: @GetMod(Character.Dex)</span>
+    <span>Mod: @Character.GetAbilityModifier("Dex")</span>
   </div>
   <div>
     <label>Constituição:</label>
@@ -26,7 +26,7 @@
         <input type="number" class="rpg-input" @bind="Character.Con" />
     }
     else { <span>@Character.Con</span> }
-    <span>Mod: @GetMod(Character.Con)</span>
+    <span>Mod: @Character.GetAbilityModifier("Con")</span>
   </div>
   <div>
     <label>Inteligência:</label>
@@ -35,7 +35,7 @@
         <input type="number" class="rpg-input" @bind="Character.Int" />
     }
     else { <span>@Character.Int</span> }
-    <span>Mod: @GetMod(Character.Int)</span>
+    <span>Mod: @Character.GetAbilityModifier("Int")</span>
   </div>
   <div>
     <label>Sabedoria:</label>
@@ -44,7 +44,7 @@
         <input type="number" class="rpg-input" @bind="Character.Wis" />
     }
     else { <span>@Character.Wis</span> }
-    <span>Mod: @GetMod(Character.Wis)</span>
+    <span>Mod: @Character.GetAbilityModifier("Wis")</span>
   </div>
   <div>
     <label>Carisma:</label>
@@ -53,7 +53,7 @@
         <input type="number" class="rpg-input" @bind="Character.Cha" />
     }
     else { <span>@Character.Cha</span> }
-    <span>Mod: @GetMod(Character.Cha)</span>
+    <span>Mod: @Character.GetAbilityModifier("Cha")</span>
   </div>
 </div>
 
@@ -61,5 +61,5 @@
   [Parameter] public Character Character { get; set; } = default!;
   [Parameter] public bool IsReadOnly { get; set; }
 
-  int GetMod(int score) => (score - 10) / 2;
+  
 }

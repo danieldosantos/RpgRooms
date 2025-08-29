@@ -102,95 +102,34 @@ public class CharacterService : ICharacterService
     {
         var modifiers = new Dictionary<string, int>
         {
-            ["Str"] = Mod(c.Str),
-            ["Dex"] = Mod(c.Dex),
-            ["Con"] = Mod(c.Con),
-            ["Int"] = Mod(c.Int),
-            ["Wis"] = Mod(c.Wis),
-            ["Cha"] = Mod(c.Cha)
+            ["Str"] = c.GetAbilityModifier("Str"),
+            ["Dex"] = c.GetAbilityModifier("Dex"),
+            ["Con"] = c.GetAbilityModifier("Con"),
+            ["Int"] = c.GetAbilityModifier("Int"),
+            ["Wis"] = c.GetAbilityModifier("Wis"),
+            ["Cha"] = c.GetAbilityModifier("Cha")
         };
 
-        var proficiency = 2 + (c.Level - 1) / 4;
+        var proficiency = c.GetProficiencyBonus();
 
-        var saveProfs = c.SavingThrowProficiencies.Select(p => p.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
         var savingThrows = new Dictionary<string, int>();
         foreach (var ab in modifiers.Keys)
-        {
-            var val = modifiers[ab];
-            if (saveProfs.Contains(ab)) val += proficiency;
-            savingThrows[ab] = val;
-        }
+            savingThrows[ab] = c.GetSavingThrow(ab);
 
-        var skillAbilities = new Dictionary<string, string>
+        var skillNames = new[]
         {
-            ["Acrobatics"] = "Dex",
-            ["Animal Handling"] = "Wis",
-            ["Arcana"] = "Int",
-            ["Athletics"] = "Str",
-            ["Deception"] = "Cha",
-            ["History"] = "Int",
-            ["Insight"] = "Wis",
-            ["Intimidation"] = "Cha",
-            ["Investigation"] = "Int",
-            ["Medicine"] = "Wis",
-            ["Nature"] = "Int",
-            ["Perception"] = "Wis",
-            ["Performance"] = "Cha",
-            ["Persuasion"] = "Cha",
-            ["Religion"] = "Int",
-            ["Sleight of Hand"] = "Dex",
-            ["Stealth"] = "Dex",
-            ["Survival"] = "Wis"
+            "Acrobatics", "Animal Handling", "Arcana", "Athletics", "Deception",
+            "History", "Insight", "Intimidation", "Investigation", "Medicine",
+            "Nature", "Perception", "Performance", "Persuasion", "Religion",
+            "Sleight of Hand", "Stealth", "Survival"
         };
-
-        var skillProfs = c.SkillProficiencies.Select(p => p.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
         var skills = new Dictionary<string, int>();
-        foreach (var kv in skillAbilities)
-        {
-            var val = modifiers[kv.Value];
-            if (skillProfs.Contains(kv.Key)) val += proficiency;
-            skills[kv.Key] = val;
-        }
+        foreach (var name in skillNames)
+            skills[name] = c.GetSkillValue(name);
 
-        var initiative = modifiers["Dex"];
-        var spellDc = 8 + proficiency + modifiers[GetCastingAbility(c)];
+        var initiative = c.GetAbilityModifier("Dex");
+        var spellDc = c.GetSpellSaveDC();
 
         return new CharacterSheetDto(c, modifiers, savingThrows, skills, initiative, spellDc, proficiency);
-    }
-
-    private static int Mod(int score) => (int)Math.Floor((score - 10) / 2.0);
-
-    private static string GetCastingAbility(Character c)
-    {
-        if (string.IsNullOrWhiteSpace(c.Class))
-            return HighestMentalAbility(c);
-        switch (c.Class.Trim().ToLowerInvariant())
-        {
-            case "wizard":
-            case "artificer":
-                return "Int";
-            case "cleric":
-            case "druid":
-            case "ranger":
-                return "Wis";
-            case "bard":
-            case "paladin":
-            case "sorcerer":
-            case "warlock":
-                return "Cha";
-            default:
-                return HighestMentalAbility(c);
-        }
-    }
-
-    private static string HighestMentalAbility(Character c)
-    {
-        var dict = new Dictionary<string, int>
-        {
-            ["Int"] = c.Int,
-            ["Wis"] = c.Wis,
-            ["Cha"] = c.Cha
-        };
-        return dict.OrderByDescending(kv => kv.Value).First().Key;
     }
 }

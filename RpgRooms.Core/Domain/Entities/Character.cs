@@ -1,4 +1,7 @@
+using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
 
 namespace RpgRooms.Core.Domain.Entities;
 
@@ -37,6 +40,110 @@ public class Character
     public ICollection<SkillProficiency> SkillProficiencies { get; set; } = new List<SkillProficiency>();
     public ICollection<InventoryItem> Inventory { get; set; } = new List<InventoryItem>();
     public ICollection<Spell> Spells { get; set; } = new List<Spell>();
+
+    public int GetAbilityModifier(string ability)
+    {
+        var score = ability switch
+        {
+            "Str" => Str,
+            "Dex" => Dex,
+            "Con" => Con,
+            "Int" => Int,
+            "Wis" => Wis,
+            "Cha" => Cha,
+            _ => 10
+        };
+        return (int)Math.Floor((score - 10) / 2.0);
+    }
+
+    public int GetProficiencyBonus() => 2 + (Level - 1) / 4;
+
+    public int GetSavingThrow(string ability)
+    {
+        var total = GetAbilityModifier(ability);
+        if (SavingThrowProficiencies.Any(p => p.Name.Equals(ability, StringComparison.OrdinalIgnoreCase)))
+            total += GetProficiencyBonus();
+        return total;
+    }
+
+    private static readonly IDictionary<string, string> SkillAbilities = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+    {
+        ["Acrobatics"] = "Dex",
+        ["Acrobacia"] = "Dex",
+        ["Animal Handling"] = "Wis",
+        ["Arcanismo"] = "Int",
+        ["Arcana"] = "Int",
+        ["Athletics"] = "Str",
+        ["Atletismo"] = "Str",
+        ["Deception"] = "Cha",
+        ["História"] = "Int",
+        ["History"] = "Int",
+        ["Insight"] = "Wis",
+        ["Intimidação"] = "Cha",
+        ["Intimidation"] = "Cha",
+        ["Investigation"] = "Int",
+        ["Medicine"] = "Wis",
+        ["Nature"] = "Int",
+        ["Perception"] = "Wis",
+        ["Percepção"] = "Wis",
+        ["Performance"] = "Cha",
+        ["Persuasion"] = "Cha",
+        ["Religion"] = "Int",
+        ["Furtividade"] = "Dex",
+        ["Stealth"] = "Dex",
+        ["Sobrevivência"] = "Wis",
+        ["Survival"] = "Wis",
+        ["Sleight of Hand"] = "Dex"
+    };
+
+    public int GetSkillValue(string skill)
+    {
+        if (!SkillAbilities.TryGetValue(skill, out var ability))
+            throw new ArgumentException($"Unknown skill {skill}", nameof(skill));
+        var total = GetAbilityModifier(ability);
+        if (SkillProficiencies.Any(p => p.Name.Equals(skill, StringComparison.OrdinalIgnoreCase)))
+            total += GetProficiencyBonus();
+        return total;
+    }
+
+    public int GetPassivePerception() => 10 + GetSkillValue("Percepção");
+
+    public int GetSpellSaveDC()
+        => 8 + GetProficiencyBonus() + GetAbilityModifier(GetCastingAbility());
+
+    private string GetCastingAbility()
+    {
+        if (string.IsNullOrWhiteSpace(Class))
+            return HighestMentalAbility();
+        switch (Class.Trim().ToLowerInvariant())
+        {
+            case "wizard":
+            case "artificer":
+                return "Int";
+            case "cleric":
+            case "druid":
+            case "ranger":
+                return "Wis";
+            case "bard":
+            case "paladin":
+            case "sorcerer":
+            case "warlock":
+                return "Cha";
+            default:
+                return HighestMentalAbility();
+        }
+    }
+
+    private string HighestMentalAbility()
+    {
+        var dict = new Dictionary<string, int>
+        {
+            ["Int"] = Int,
+            ["Wis"] = Wis,
+            ["Cha"] = Cha
+        };
+        return dict.OrderByDescending(kv => kv.Value).First().Key;
+    }
 }
 
 public class SavingThrowProficiency
