@@ -43,4 +43,26 @@ public class CampaignRulesTests
         var camp = await svc.CreateCampaignAsync("gm", "A", "B");
         Assert.Equal(CampaignStatus.InProgress, camp.Status);
     }
+
+    [Fact]
+    public async Task ListaPadraoNaoIncluiAtivasFechadas()
+    {
+        var opts = new DbContextOptionsBuilder<AppDbContext>().UseInMemoryDatabase("t4").Options;
+        var db = new AppDbContext(opts);
+        var svc = new CampaignService(db);
+
+        var ativaFechada = await svc.CreateCampaignAsync("gm1", "Ativa", null);
+
+        var recrutando = await svc.CreateCampaignAsync("gm2", "Recrutando", null);
+        await svc.ToggleRecruitmentAsync(recrutando.Id, "gm2");
+
+        var finalizada = await svc.CreateCampaignAsync("gm3", "Finalizada", null);
+        await svc.FinalizeCampaignAsync(finalizada.Id, "gm3");
+
+        var lista = await svc.ListCampaignsAsync(null, false, null, null);
+
+        Assert.DoesNotContain(lista, c => c.Id == ativaFechada.Id);
+        Assert.Contains(lista, c => c.Id == recrutando.Id);
+        Assert.Contains(lista, c => c.Id == finalizada.Id);
+    }
 }

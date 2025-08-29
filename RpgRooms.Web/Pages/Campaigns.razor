@@ -1,6 +1,7 @@
 @page "/campaigns"
 @inject HttpClient Http
 <h3>Campanhas</h3>
+<p>Campanhas ativas fechadas para recrutamento não são exibidas; campanhas finalizadas continuam visíveis.</p>
 <input @bind="search" placeholder="Pesquisar..." />
 <label style="margin-left:8px"><input type="checkbox" @bind="recruitingOnly" /> Apenas recrutando</label>
 <button class="btn" @onclick="Load" style="margin-left:8px">Buscar</button>
