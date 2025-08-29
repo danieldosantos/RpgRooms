@@ -9,7 +9,11 @@
 @using Microsoft.JSInterop
 
 <h3>@campaign?.Name</h3>
-@if (campaign is null)
+@if (loadFailed)
+{
+    <p class="text-danger">Falha ao carregar a campanha.</p>
+}
+else if (campaign is null)
 {
     <p>Carregando...</p>
 }
@@ -87,31 +91,39 @@ else
     string displayName = string.Empty;
     bool sentAsCharacter;
     bool isGm;
+    bool loadFailed;
 
     [CascadingParameter] public Task<AuthenticationState> AuthStateTask { get; set; } = default!;
 
     protected override async Task OnInitializedAsync()
     {
-        var campaignResponse = await Http.GetAsync($"/api/campaigns/{id}");
-        if (campaignResponse.StatusCode == HttpStatusCode.Unauthorized)
+        try
         {
-            Nav.NavigateTo($"/login?returnUrl=/campaigns/{id}", true);
-            return;
-        }
-        campaignResponse.EnsureSuccessStatusCode();
-        campaign = await campaignResponse.Content.ReadFromJsonAsync<Campaign>();
+            var campaignResponse = await Http.GetAsync($"/api/campaigns/{id}");
+            if (campaignResponse.StatusCode == HttpStatusCode.Unauthorized)
+            {
+                Nav.NavigateTo($"/login?returnUrl=/campaigns/{id}", true);
+                return;
+            }
+            campaignResponse.EnsureSuccessStatusCode();
+            campaign = await campaignResponse.Content.ReadFromJsonAsync<Campaign>();
 
-        var messagesResponse = await Http.GetAsync($"/api/campaigns/{id}/messages");
-        if (messagesResponse.IsSuccessStatusCode)
-        {
-            messages = await messagesResponse.Content.ReadFromJsonAsync<List<ChatMessageDto>>() ?? new();
-        }
+            var messagesResponse = await Http.GetAsync($"/api/campaigns/{id}/messages");
+            if (messagesResponse.IsSuccessStatusCode)
+            {
+                messages = await messagesResponse.Content.ReadFromJsonAsync<List<ChatMessageDto>>() ?? new();
+            }
 
-        await RefreshIsGm();
-        if (isGm)
+            await RefreshIsGm();
+            if (isGm)
+            {
+                await LoadJoinRequests();
+                await LoadMembers();
+            }
+        }
+        catch
         {
-            await LoadJoinRequests();
-            await LoadMembers();
+            loadFailed = true;
         }
     }
 
