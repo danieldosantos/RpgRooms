@@ -20,11 +20,46 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<ChatMessage> ChatMessages => Set<ChatMessage>();
     public DbSet<AuditEntry> AuditEntries => Set<AuditEntry>();
     public DbSet<CampaignExit> CampaignExits => Set<CampaignExit>();
+    public DbSet<Character> Characters => Set<Character>();
+    public DbSet<SavingThrowProficiency> SavingThrowProficiencies => Set<SavingThrowProficiency>();
+    public DbSet<SkillProficiency> SkillProficiencies => Set<SkillProficiency>();
+    public DbSet<InventoryItem> InventoryItems => Set<InventoryItem>();
+    public DbSet<Spell> Spells => Set<Spell>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
         base.OnModelCreating(b);
         b.Entity<CampaignMember>().HasIndex(m => new { m.CampaignId, m.UserId }).IsUnique();
         b.Entity<Campaign>().Property(c => c.MaxPlayers).HasDefaultValue(50);
+
+        b.Entity<Character>()
+            .HasOne<Campaign>()
+            .WithMany()
+            .HasForeignKey(c => c.CampaignId);
+
+        b.Entity<Character>()
+            .HasOne<ApplicationUser>()
+            .WithMany()
+            .HasForeignKey(c => c.UserId);
+
+        b.Entity<SavingThrowProficiency>()
+            .HasOne<Character>()
+            .WithMany(c => c.SavingThrowProficiencies)
+            .HasForeignKey(p => p.CharacterId);
+
+        b.Entity<SkillProficiency>()
+            .HasOne<Character>()
+            .WithMany(c => c.SkillProficiencies)
+            .HasForeignKey(p => p.CharacterId);
+
+        b.Entity<InventoryItem>()
+            .HasOne<Character>()
+            .WithMany(c => c.Inventory)
+            .HasForeignKey(i => i.CharacterId);
+
+        b.Entity<Spell>()
+            .HasOne<Character>()
+            .WithMany(c => c.Spells)
+            .HasForeignKey(s => s.CharacterId);
     }
 }
