@@ -66,7 +66,7 @@ else
     <div class="chat-box">
         @foreach (var m in messages)
         {
-            <div><b>@m.DisplayName</b>: @m.Content <small>(@m.CreatedAt.LocalDateTime)</small></div>
+            <div><b>@m.DisplayName</b>: @m.Content</div>
         }
     </div>
 
@@ -136,7 +136,7 @@ else
     [JSInvokable]
     public Task OnSystemNotice(string text)
     {
-        messages.Add(new ChatMessageDto(Guid.Empty, "Sistema", text, false, DateTimeOffset.UtcNow));
+        messages.Add(new ChatMessageDto(Guid.Empty, "Sistema", text, false));
         StateHasChanged();
         return Task.CompletedTask;
     }

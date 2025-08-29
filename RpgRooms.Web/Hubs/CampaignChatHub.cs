@@ -42,7 +42,7 @@ public class CampaignChatHub : Hub
     {
         var userId = Context.User!.Identity!.Name!;
         var msg = await _svc.AddChatMessageAsync(campaignId, userId, displayName, content, sentAsCharacter);
-        var dto = new ChatMessageDto(msg.Id, msg.DisplayName, msg.Content, msg.SentAsCharacter, msg.CreatedAt);
+        var dto = new ChatMessageDto(msg.Id, msg.DisplayName, msg.Content, msg.SentAsCharacter);
         await Clients.Group(GroupName(campaignId)).SendAsync("ReceiveMessage", dto);
     }
 
