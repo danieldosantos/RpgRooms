@@ -1,27 +1,68 @@
-@page "/characters/edit"
+@page "/campaigns/{campaignId:guid}/characters/{characterId:guid}/edit"
+@attribute [Authorize]
+@inject HttpClient Http
+
 <h3>Editar Personagem</h3>
-<div class="rpg-sheet page">
-    <IdentificationSection Character="character" />
-    <AttributesSection Character="character" />
-    <SavingThrowsSection Character="character" />
-    <SkillsSection Character="character" />
-    <AttacksSection Character="character" />
-    <InventorySection Character="character" />
-    <DescriptionSection Character="character" />
-    <p>Percepção Passiva: @character.GetPassivePerception()</p>
-    <p>CD de Magia: @character.GetSpellSaveDC()</p>
-</div>
+
+@if (!loaded)
+{
+    <p>Carregando...</p>
+}
+else if (!string.IsNullOrEmpty(error))
+{
+    <p class="text-danger">@error</p>
+}
+else
+{
+    <div class="rpg-sheet page">
+        <IdentificationSection Character="character" IsReadOnly="IsReadOnly" />
+        <AttributesSection Character="character" IsReadOnly="IsReadOnly" />
+        <SavingThrowsSection Character="character" IsReadOnly="IsReadOnly" />
+        <SkillsSection Character="character" IsReadOnly="IsReadOnly" />
+        <AttacksSection Character="character" IsReadOnly="IsReadOnly" />
+        <InventorySection Character="character" IsReadOnly="IsReadOnly" />
+        <DescriptionSection Character="character" IsReadOnly="IsReadOnly" />
+        <p>Percepção Passiva: @character.GetPassivePerception()</p>
+        <p>CD de Magia: @character.GetSpellSaveDC()</p>
+        @if (!IsReadOnly)
+        {
+            <button class="btn" @onclick="Save">Salvar</button>
+        }
+    </div>
+}
 
 @code {
-    Character character = new()
+    [Parameter] public Guid campaignId { get; set; }
+    [Parameter] public Guid characterId { get; set; }
+    [Parameter] public bool IsReadOnly { get; set; }
+
+    Character character = new();
+    bool loaded;
+    string? error;
+
+    protected override async Task OnInitializedAsync()
     {
-        Name = "Novo Herói",
-        Level = 1,
-        Str = 10,
-        Dex = 10,
-        Con = 10,
-        Int = 10,
-        Wis = 10,
-        Cha = 10
-    };
+        try
+        {
+            var sheet = await Http.GetFromJsonAsync<CharacterSheetDto>(
+                $"/api/campaigns/{campaignId}/characters/{characterId}");
+            if (sheet?.Character is not null)
+                character = sheet.Character;
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+        }
+        finally
+        {
+            loaded = true;
+        }
+    }
+
+    private async Task Save()
+    {
+        var res = await Http.PutAsJsonAsync(
+            $"/api/campaigns/{campaignId}/characters/{characterId}", character);
+        res.EnsureSuccessStatusCode();
+    }
 }
