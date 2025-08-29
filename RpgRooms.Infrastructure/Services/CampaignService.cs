@@ -95,8 +95,10 @@ public class CampaignService : ICampaignService
             throw new InvalidOperationException("Você já é membro.");
 
         var cutoff = DateTimeOffset.UtcNow.AddHours(-12);
-        var recentExit = await _db.CampaignExits
-            .AnyAsync(e => e.CampaignId == campaignId && e.UserId == userId && e.ExitedAt > cutoff);
+        var recentExit = (await _db.CampaignExits
+            .Where(e => e.CampaignId == campaignId && e.UserId == userId)
+            .ToListAsync())
+            .Any(e => e.ExitedAt > cutoff);
         if (recentExit)
             throw new InvalidOperationException("Aguarde 12h antes de solicitar novamente.");
 
