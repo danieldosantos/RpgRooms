@@ -63,11 +63,21 @@ public class CampaignService : ICampaignService
     {
         var c = await _db.Campaigns.FindAsync(campaignId) ?? throw new InvalidOperationException("Campanha não encontrada");
         if (c.OwnerUserId != gmUserId) throw new UnauthorizedAccessException("Apenas o GM pode finalizar.");
+
         c.Status = CampaignStatus.Finalized;
         c.IsRecruiting = false;
         c.FinalizedAt = DateTimeOffset.UtcNow;
         c.UpdatedAt = DateTimeOffset.UtcNow;
+
+        var members = await _db.CampaignMembers.Where(m => m.CampaignId == campaignId).ToListAsync();
+        if (members.Any())
+            _db.CampaignMembers.RemoveRange(members);
+
         await _db.SaveChangesAsync();
+
+        foreach (var m in members)
+            await Audit("FinalizeRemoveMember", gmUserId, c.Id, new { m.UserId });
+
         await Audit("FinalizeCampaign", gmUserId, c.Id, new { c.Status });
     }
 
