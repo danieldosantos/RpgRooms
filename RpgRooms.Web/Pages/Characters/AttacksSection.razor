@@ -1,0 +1,30 @@
+@using RpgRooms.Core.Domain.Entities
+<div class="rpg-section">
+  <h4>Ataques/Magias</h4>
+  <ul>
+    @foreach(var s in Character.Spells)
+    {
+        <li>@s.Name</li>
+    }
+  </ul>
+  @if(!IsReadOnly)
+  {
+      <input class="rpg-input" @bind="newSpell" placeholder="Novo ataque ou magia" />
+      <button class="btn" @onclick="Add">Adicionar</button>
+  }
+</div>
+
+@code {
+  [Parameter] public Character Character { get; set; } = default!;
+  [Parameter] public bool IsReadOnly { get; set; }
+
+  string newSpell = string.Empty;
+  void Add()
+  {
+      if(!string.IsNullOrWhiteSpace(newSpell))
+      {
+          Character.Spells.Add(new Spell { Name = newSpell });
+          newSpell = string.Empty;
+      }
+  }
+}

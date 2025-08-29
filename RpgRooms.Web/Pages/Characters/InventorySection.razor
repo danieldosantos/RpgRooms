@@ -1,0 +1,30 @@
+@using RpgRooms.Core.Domain.Entities
+<div class="rpg-section">
+  <h4>Inventário</h4>
+  <ul>
+    @foreach(var i in Character.Inventory)
+    {
+        <li>@i.Name</li>
+    }
+  </ul>
+  @if(!IsReadOnly)
+  {
+      <input class="rpg-input" @bind="newItem" placeholder="Novo item" />
+      <button class="btn" @onclick="Add">Adicionar</button>
+  }
+</div>
+
+@code {
+  [Parameter] public Character Character { get; set; } = default!;
+  [Parameter] public bool IsReadOnly { get; set; }
+
+  string newItem = string.Empty;
+  void Add()
+  {
+      if(!string.IsNullOrWhiteSpace(newItem))
+      {
+          Character.Inventory.Add(new InventoryItem { Name = newItem });
+          newItem = string.Empty;
+      }
+  }
+}

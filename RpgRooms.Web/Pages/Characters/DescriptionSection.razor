@@ -1,0 +1,17 @@
+@using RpgRooms.Core.Domain.Entities
+<div class="rpg-section">
+  <h4>Descrição</h4>
+  @if(!IsReadOnly)
+  {
+      <textarea class="rpg-input" rows="4" @bind="Character.Background"></textarea>
+  }
+  else
+  {
+      <p>@Character.Background</p>
+  }
+</div>
+
+@code {
+  [Parameter] public Character Character { get; set; } = default!;
+  [Parameter] public bool IsReadOnly { get; set; }
+}

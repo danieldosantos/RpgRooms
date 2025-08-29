@@ -1,0 +1,55 @@
+@using RpgRooms.Core.Domain.Entities
+<div class="rpg-section">
+  <h4>Perícias</h4>
+  @foreach (var skill in skills)
+  {
+      var proficient = Character.SkillProficiencies.Any(p => p.Name == skill.Name);
+      <div>
+          @if(!IsReadOnly)
+          {
+              <input type="checkbox" checked="@proficient" @onchange="e => Toggle(skill.Name, (bool)e.Value)" />
+          }
+          <span>@skill.Display (@GetTotal(skill))</span>
+      </div>
+  }
+</div>
+
+@code {
+  [Parameter] public Character Character { get; set; } = default!;
+  [Parameter] public bool IsReadOnly { get; set; }
+  [Parameter] public int ProficiencyBonus { get; set; }
+
+  record Skill(string Name, string Display, string Ability);
+  Skill[] skills = new[] {
+      new Skill("Acrobacia","Acrobacia (DEX)","Dex"),
+      new Skill("Arcanismo","Arcanismo (INT)","Int"),
+      new Skill("Atletismo","Atletismo (STR)","Str"),
+      new Skill("História","História (INT)","Int"),
+      new Skill("Furtividade","Furtividade (DEX)","Dex"),
+      new Skill("Sobrevivência","Sobrevivência (WIS)","Wis")
+  };
+
+  int GetAbilityScore(string ability) => ability switch {
+      "Str" => Character.Str,
+      "Dex" => Character.Dex,
+      "Con" => Character.Con,
+      "Int" => Character.Int,
+      "Wis" => Character.Wis,
+      "Cha" => Character.Cha,
+      _ => 10
+  };
+  int GetMod(string ability) => (GetAbilityScore(ability) - 10) / 2;
+  int GetTotal(Skill skill)
+  {
+      var total = GetMod(skill.Ability);
+      if (Character.SkillProficiencies.Any(p => p.Name == skill.Name))
+          total += ProficiencyBonus;
+      return total;
+  }
+  void Toggle(string name, bool value)
+  {
+      var prof = Character.SkillProficiencies.FirstOrDefault(p => p.Name == name);
+      if (value && prof == null) Character.SkillProficiencies.Add(new SkillProficiency { Name = name });
+      if (!value && prof != null) Character.SkillProficiencies.Remove(prof);
+  }
+}
