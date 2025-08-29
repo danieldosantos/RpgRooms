@@ -65,6 +65,13 @@ public static class CampaignEndpoints
             return Results.Ok(list);
         });
 
+        g.MapGet("{id:guid}/is-member", async (Guid id, ICampaignService svc, HttpContext http) =>
+        {
+            var userId = http.User.Identity!.Name!;
+            var isMember = await svc.IsMemberAsync(id, userId);
+            return Results.Ok(isMember);
+        });
+
         g.MapGet("{id:guid}/messages", async (Guid id, ICampaignService svc, HttpContext http) =>
         {
             var userId = http.User.Identity!.Name!;

@@ -10,10 +10,6 @@
 @using Microsoft.JSInterop
 
 <h3>@campaign?.Name</h3>
-@if (campaign?.Status == CampaignStatus.Finalized)
-{
-    <p class="text-warning">Campanha finalizada pelo GM.</p>
-}
 @if (loadFailed)
 {
     <p class="text-danger">Falha ao carregar a campanha.</p>
@@ -24,65 +20,73 @@ else if (campaign is null)
 }
 else
 {
-    <p>@campaign.Description</p>
-    <p>Status: <b>@campaign.Status</b> — @(campaign.IsRecruiting ? "Recrutando" : "Fechada")</p>
-
-    @if (isGm)
+    if (!isGm && !isMember)
     {
-        <button class="btn" @onclick="ToggleRecruitment">Alternar Recrutamento</button>
-        <button class="btn" @onclick="FinalizeCampaign" style="margin-left:8px">Finalizar Campanha</button>
-
-        <h4>Solicitações Pendentes</h4>
-        @if (joinRequests.Count == 0)
+        <p>@campaign.Description</p>
+        <p>GM: @campaign.OwnerUserId</p>
+    }
+    else
+    {
+        if (campaign.Status == CampaignStatus.Finalized)
         {
-            <p>Nenhuma solicitação.</p>
+            <p class="text-warning">Campanha finalizada pelo GM.</p>
         }
-        else
+        <p>@campaign.Description</p>
+        <p>Status: <b>@campaign.Status</b> — @(campaign.IsRecruiting ? "Recrutando" : "Fechada")</p>
+
+        @if (isGm)
         {
-            @foreach (var r in joinRequests)
+            <button class="btn" @onclick="ToggleRecruitment">Alternar Recrutamento</button>
+            <button class="btn" @onclick="FinalizeCampaign" style="margin-left:8px">Finalizar Campanha</button>
+
+            <h4>Solicitações Pendentes</h4>
+            @if (joinRequests.Count == 0)
             {
-                <div>@r.UserId (@r.Message)
-                    <button class="btn" @onclick="() => Approve(r.Id)">Aprovar</button>
-                    <button class="btn" @onclick="() => Reject(r.Id)" style="margin-left:4px">Rejeitar</button>
-                </div>
+                <p>Nenhuma solicitação.</p>
+            }
+            else
+            {
+                @foreach (var r in joinRequests)
+                {
+                    <div>@r.UserId (@r.Message)
+                        <button class="btn" @onclick="() => Approve(r.Id)">Aprovar</button>
+                        <button class="btn" @onclick="() => Reject(r.Id)" style="margin-left:4px">Rejeitar</button>
+                    </div>
+                }
+            }
+
+            <h4>Membros</h4>
+            @if (members.Count == 0)
+            {
+                <p>Nenhum membro.</p>
+            }
+            else
+            {
+                @foreach (var m in members)
+                {
+                    <div>@m.UserId
+                        <button class="btn" @onclick="() => Kick(m.UserId)" style="margin-left:4px">Remover</button>
+                    </div>
+                }
             }
         }
 
-        <h4>Membros</h4>
-        @if (members.Count == 0)
-        {
-            <p>Nenhum membro.</p>
-        }
-        else
-        {
-            @foreach (var m in members)
+        <hr />
+        <h4>Chat</h4>
+        <label>Nome para exibir</label>
+        <input @bind="displayName" />
+        <label style="margin-left:8px"><input type="checkbox" @bind="sentAsCharacter" /> Enviar como personagem</label>
+
+        <div class="chat-box">
+            @foreach (var m in messages)
             {
-                <div>@m.UserId
-                    <button class="btn" @onclick="() => Kick(m.UserId)" style="margin-left:4px">Remover</button>
-                </div>
+                <div><b>@m.DisplayName</b>: @m.Content</div>
             }
-        }
+        </div>
+
+        <input @bind="message" @onkeydown="HandleKey" placeholder="Digite uma mensagem..." />
+        <button class="btn" @onclick="Send">Enviar</button>
     }
-    else if (campaign.IsRecruiting)
-    {
-        <button class="btn" @onclick="SendJoinRequest">Solicitar Participação</button>
-    }
-
-    <hr />
-    <h4>Chat</h4>
-    <label>Nome para exibir</label>
-    <input @bind="displayName" />
-    <label style="margin-left:8px"><input type="checkbox" @bind="sentAsCharacter" /> Enviar como personagem</label>
-
-    <div class="chat-box">
-        @foreach (var m in messages)
-        {
-            <div><b>@m.DisplayName</b>: @m.Content</div>
-        }
-    </div>
-
-    <input @bind="message" @onkeydown="HandleKey" placeholder="Digite uma mensagem..." />
-    <button class="btn" @onclick="Send">Enviar</button>
 }
 
 @code {
@@ -96,6 +100,7 @@ else
     string displayName = string.Empty;
     bool sentAsCharacter;
     bool isGm;
+    bool isMember;
     bool loadFailed;
 
     [CascadingParameter] public Task<AuthenticationState> AuthStateTask { get; set; } = default!;
@@ -113,31 +118,43 @@ else
             campaignResponse.EnsureSuccessStatusCode();
             campaign = await campaignResponse.Content.ReadFromJsonAsync<Campaign>();
 
-            var messagesResponse = await Http.GetAsync($"/api/campaigns/{id}/messages");
-            if (messagesResponse.IsSuccessStatusCode)
+            await RefreshIsGm();
+            try
             {
-                messages = await messagesResponse.Content.ReadFromJsonAsync<List<ChatMessageDto>>() ?? new();
+                isMember = await Http.GetFromJsonAsync<bool>($"/api/campaigns/{id}/is-member");
+            }
+            catch
+            {
+                isMember = false;
             }
 
-            await RefreshIsGm();
-            if (isGm)
+            if (isGm || isMember)
             {
-                try
+                var messagesResponse = await Http.GetAsync($"/api/campaigns/{id}/messages");
+                if (messagesResponse.IsSuccessStatusCode)
                 {
-                    await LoadJoinRequests();
-                }
-                catch
-                {
-                    // Ignora falhas ao carregar solicitações
+                    messages = await messagesResponse.Content.ReadFromJsonAsync<List<ChatMessageDto>>() ?? new();
                 }
 
-                try
+                if (isGm)
                 {
-                    await LoadMembers();
-                }
-                catch
-                {
-                    // Ignora falhas ao carregar membros
+                    try
+                    {
+                        await LoadJoinRequests();
+                    }
+                    catch
+                    {
+                        // Ignora falhas ao carregar solicitações
+                    }
+
+                    try
+                    {
+                        await LoadMembers();
+                    }
+                    catch
+                    {
+                        // Ignora falhas ao carregar membros
+                    }
                 }
             }
         }
@@ -152,7 +169,7 @@ else
         if (firstRender)
         {
             var user = (await AuthStateTask).User;
-            if (user.Identity?.IsAuthenticated == true)
+            if (user.Identity?.IsAuthenticated == true && (isGm || isMember))
             {
                 try
                 {
@@ -219,12 +236,6 @@ else
         res.EnsureSuccessStatusCode();
         campaign = await Http.GetFromJsonAsync<Campaign>($"/api/campaigns/{id}");
         await RefreshIsGm();
-    }
-
-    private async Task SendJoinRequest()
-    {
-        var res = await Http.PostAsJsonAsync($"/api/campaigns/{id}/join-requests", new { Message = "Gostaria de participar" });
-        res.EnsureSuccessStatusCode();
     }
 
     private async Task Approve(Guid reqId)
