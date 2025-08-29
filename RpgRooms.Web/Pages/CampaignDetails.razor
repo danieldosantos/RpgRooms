@@ -5,10 +5,15 @@
 @inject NavigationManager Nav
 @inject IJSRuntime JS
 @using RpgRooms.Core.Application.DTOs
+@using RpgRooms.Core.Domain.Enums
 @using System.Net
 @using Microsoft.JSInterop
 
 <h3>@campaign?.Name</h3>
+@if (campaign?.Status == CampaignStatus.Finalized)
+{
+    <p class="text-warning">Campanha finalizada pelo GM.</p>
+}
 @if (loadFailed)
 {
     <p class="text-danger">Falha ao carregar a campanha.</p>
@@ -117,8 +122,23 @@ else
             await RefreshIsGm();
             if (isGm)
             {
-                await LoadJoinRequests();
-                await LoadMembers();
+                try
+                {
+                    await LoadJoinRequests();
+                }
+                catch
+                {
+                    // Ignora falhas ao carregar solicitações
+                }
+
+                try
+                {
+                    await LoadMembers();
+                }
+                catch
+                {
+                    // Ignora falhas ao carregar membros
+                }
             }
         }
         catch
@@ -148,9 +168,16 @@ else
 
     private async Task RefreshIsGm()
     {
-        var c = await Http.GetFromJsonAsync<Campaign>($"/api/campaigns/{id}");
-        var me = (await AuthStateTask)!.User.Identity!.Name;
-        isGm = c?.OwnerUserId == me;
+        try
+        {
+            var c = await Http.GetFromJsonAsync<Campaign>($"/api/campaigns/{id}");
+            var me = (await AuthStateTask)!.User.Identity!.Name;
+            isGm = c?.OwnerUserId == me;
+        }
+        catch
+        {
+            isGm = false;
+        }
     }
 
     private async Task LoadJoinRequests()
