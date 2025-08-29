@@ -120,7 +120,7 @@ else
     bool isGm;
     bool isMember;
     bool loadFailed;
-    DotNetObjectReference<CampaignDetails>? _objRef;
+    private DotNetObjectReference<CampaignDetails>? _objRef;
 
     [CascadingParameter] public Task<AuthenticationState> AuthStateTask { get; set; } = default!;
 
@@ -315,6 +315,7 @@ else
             }
 
             _objRef.Dispose();
+            _objRef = null;
         }
     }
 }
