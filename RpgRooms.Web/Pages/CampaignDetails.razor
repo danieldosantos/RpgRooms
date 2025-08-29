@@ -81,7 +81,7 @@ else
             {
                 @foreach (var m in members)
                 {
-                    <div>@m.UserId
+                    <div>@m.UserId (@m.CharacterName)
                         <button class="btn" @onclick="() => Kick(m.UserId)" style="margin-left:4px">Remover</button>
                     </div>
                 }
