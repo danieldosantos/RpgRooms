@@ -68,6 +68,9 @@ class TestHubCallerClients : IHubCallerClients
     public IClientProxy Groups(IReadOnlyList<string> groupNames) => GroupProxy;
     public IClientProxy User(string userId) => GroupProxy;
     public IClientProxy Users(IReadOnlyList<string> userIds) => GroupProxy;
+    public IClientProxy Caller => GroupProxy;
+    public IClientProxy Others => GroupProxy;
+    public IClientProxy OthersInGroup(string groupName) => GroupProxy;
 }
 
 class TestHubCallerContext : HubCallerContext
@@ -75,11 +78,11 @@ class TestHubCallerContext : HubCallerContext
     public override string ConnectionId { get; }
     public override string? UserIdentifier => User.Identity?.Name;
     public override ClaimsPrincipal User { get; }
-    public override IDictionary<object, object?> Items { get; set; } = new Dictionary<object, object?>();
+    private readonly Dictionary<object, object?> _items = new();
+    public override IDictionary<object, object?> Items => _items;
     public override IFeatureCollection Features { get; } = new FeatureCollection();
     public override CancellationToken ConnectionAborted { get; } = CancellationToken.None;
     public override void Abort() { }
-    public override HttpContext? GetHttpContext() => null;
 
     public TestHubCallerContext(string connectionId, string userId)
     {
