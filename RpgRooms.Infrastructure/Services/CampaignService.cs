@@ -168,6 +168,15 @@ public class CampaignService : ICampaignService
         await Audit("KickMember", gmUserId, campaignId, new { targetUserId, reason });
     }
 
+    public async Task<IReadOnlyList<Campaign>> ListUserCampaignsAsync(string userId)
+    {
+        var list = await _db.Campaigns
+            .Include(c => c.Members)
+            .Where(c => c.OwnerUserId == userId || c.Members.Any(m => m.UserId == userId && !m.IsBanned))
+            .ToListAsync();
+        return list.OrderByDescending(c => c.CreatedAt).ToList();
+    }
+
     public async Task<IReadOnlyList<Campaign>> ListCampaignsAsync(string? search, bool recruitingOnly, string? ownerUserId, string? status)
     {
         var q = _db.Campaigns.AsQueryable();

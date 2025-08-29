@@ -17,6 +17,7 @@ public interface ICampaignService
 
     Task RemoveMemberAsync(Guid campaignId, string targetUserId, string gmUserId, string? reason = null);
 
+    Task<IReadOnlyList<Campaign>> ListUserCampaignsAsync(string userId);
     Task<IReadOnlyList<Campaign>> ListCampaignsAsync(string? search, bool recruitingOnly, string? ownerUserId, string? status);
     Task<Campaign?> GetCampaignAsync(Guid campaignId);
 
