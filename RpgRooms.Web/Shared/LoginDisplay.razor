@@ -7,9 +7,7 @@
     <Authorized>
         <span>Olá, @context.User.Identity?.Name!</span>
         <a href="/Identity/Account/Manage">Conta</a>
-        <form @onsubmit="LogoutAsync" style="display:inline">
-            <button type="submit">Sair</button>
-        </form>
+        <button type="button" @onclick="LogoutAsync" style="display:inline">Sair</button>
     </Authorized>
     <NotAuthorized>
         <a href="/Identity/Account/Login">Entrar</a>
