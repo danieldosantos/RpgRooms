@@ -168,6 +168,9 @@ Base: `/api/campaigns` (auth obrigatória salvo onde indicado)
 - `DELETE /api/campaigns/{id}/members/{targetUserId}` — **GM only**; remove jogador
 - `GET /api/campaigns` — **anônimo permitido**; filtros: `search`, `recruitingOnly`, `ownerUserId`, `status`
 - `GET /api/campaigns/{id}` — **anônimo permitido**; detalhes
+- `POST /api/campaigns/{id}/characters` — cria personagem
+  - **GM** pode definir `userId` no corpo para criar para outro jogador
+  - jogadores comuns sempre usarão o próprio `userId` independentemente do enviado
 
 ### Exemplo (PowerShell + `curl`)
 ```powershell
