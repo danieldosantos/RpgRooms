@@ -3,11 +3,13 @@
 <div class="rpg-sheet page">
     <IdentificationSection Character="character" IsReadOnly="true" />
     <AttributesSection Character="character" IsReadOnly="true" />
-    <SavingThrowsSection Character="character" ProficiencyBonus="ProficiencyBonus" IsReadOnly="true" />
-    <SkillsSection Character="character" ProficiencyBonus="ProficiencyBonus" IsReadOnly="true" />
+    <SavingThrowsSection Character="character" IsReadOnly="true" />
+    <SkillsSection Character="character" IsReadOnly="true" />
     <AttacksSection Character="character" IsReadOnly="true" />
     <InventorySection Character="character" IsReadOnly="true" />
     <DescriptionSection Character="character" IsReadOnly="true" />
+    <p>Percepção Passiva: @character.GetPassivePerception()</p>
+    <p>CD de Magia: @character.GetSpellSaveDC()</p>
 </div>
 
 @code {
@@ -26,6 +28,4 @@
         Wis = 13,
         Cha = 8
     };
-
-    int ProficiencyBonus => ((character.Level - 1) / 4) + 2;
 }

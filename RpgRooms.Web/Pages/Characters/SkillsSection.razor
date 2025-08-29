@@ -9,7 +9,7 @@
           {
               <input type="checkbox" checked="@proficient" @onchange="e => Toggle(skill.Name, (bool)e.Value)" />
           }
-          <span>@skill.Display (@GetTotal(skill))</span>
+          <span>@skill.Display (@Character.GetSkillValue(skill.Name))</span>
       </div>
   }
 </div>
@@ -17,35 +17,16 @@
 @code {
   [Parameter] public Character Character { get; set; } = default!;
   [Parameter] public bool IsReadOnly { get; set; }
-  [Parameter] public int ProficiencyBonus { get; set; }
 
-  record Skill(string Name, string Display, string Ability);
+  record Skill(string Name, string Display);
   Skill[] skills = new[] {
-      new Skill("Acrobacia","Acrobacia (DEX)","Dex"),
-      new Skill("Arcanismo","Arcanismo (INT)","Int"),
-      new Skill("Atletismo","Atletismo (STR)","Str"),
-      new Skill("História","História (INT)","Int"),
-      new Skill("Furtividade","Furtividade (DEX)","Dex"),
-      new Skill("Sobrevivência","Sobrevivência (WIS)","Wis")
+      new Skill("Acrobacia","Acrobacia (DEX)"),
+      new Skill("Arcanismo","Arcanismo (INT)"),
+      new Skill("Atletismo","Atletismo (STR)"),
+      new Skill("História","História (INT)"),
+      new Skill("Furtividade","Furtividade (DEX)"),
+      new Skill("Sobrevivência","Sobrevivência (WIS)")
   };
-
-  int GetAbilityScore(string ability) => ability switch {
-      "Str" => Character.Str,
-      "Dex" => Character.Dex,
-      "Con" => Character.Con,
-      "Int" => Character.Int,
-      "Wis" => Character.Wis,
-      "Cha" => Character.Cha,
-      _ => 10
-  };
-  int GetMod(string ability) => (GetAbilityScore(ability) - 10) / 2;
-  int GetTotal(Skill skill)
-  {
-      var total = GetMod(skill.Ability);
-      if (Character.SkillProficiencies.Any(p => p.Name == skill.Name))
-          total += ProficiencyBonus;
-      return total;
-  }
   void Toggle(string name, bool value)
   {
       var prof = Character.SkillProficiencies.FirstOrDefault(p => p.Name == name);
