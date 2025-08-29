@@ -47,7 +47,11 @@ builder.Services.AddScoped(sp =>
     var accessor = sp.GetRequiredService<IHttpContextAccessor>();
     var req = accessor.HttpContext?.Request;
     var baseUri = req != null ? $"{req.Scheme}://{req.Host}{req.PathBase}/" : "http://localhost/";
-    return new HttpClient { BaseAddress = new Uri(baseUri) };
+    var client = new HttpClient { BaseAddress = new Uri(baseUri) };
+    // Encaminhar cookies de autenticação para chamadas à API
+    if (req?.Headers.TryGetValue("Cookie", out var cookie) == true)
+        client.DefaultRequestHeaders.Add("Cookie", new[] { cookie.ToString() });
+    return client;
 });
 
 builder.Services.AddScoped<IdentitySeeder>();
