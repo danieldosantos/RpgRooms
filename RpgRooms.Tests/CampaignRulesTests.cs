@@ -65,4 +65,20 @@ public class CampaignRulesTests
         Assert.Contains(lista, c => c.Id == recrutando.Id);
         Assert.Contains(lista, c => c.Id == finalizada.Id);
     }
+
+    [Fact]
+    public async Task FinalizarRemoveMembros()
+    {
+        var opts = new DbContextOptionsBuilder<AppDbContext>().UseInMemoryDatabase("t5").Options;
+        var db = new AppDbContext(opts);
+        var svc = new CampaignService(db);
+        var camp = await svc.CreateCampaignAsync("gm", "A", null);
+        db.CampaignMembers.Add(new() { CampaignId = camp.Id, UserId = "p1" });
+        db.CampaignMembers.Add(new() { CampaignId = camp.Id, UserId = "p2" });
+        await db.SaveChangesAsync();
+
+        await svc.FinalizeCampaignAsync(camp.Id, "gm");
+
+        Assert.Equal(0, await db.CampaignMembers.CountAsync(m => m.CampaignId == camp.Id));
+    }
 }
