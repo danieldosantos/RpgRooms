@@ -1,15 +1,21 @@
 window.chat = (function(){
   let connection;
   let dotnetObj;
+  let currentCampaignId;
   async function ensure(campaignId){
+    currentCampaignId = campaignId;
     if(!connection){
       if(typeof signalR === "undefined"){
         console.error("SignalR script não carregado.");
         return;
       }
-      connection = new signalR.HubConnectionBuilder().withUrl('/hubs/campaign-chat').build();
+      connection = new signalR.HubConnectionBuilder()
+        .withUrl('/hubs/campaign-chat')
+        .withAutomaticReconnect()
+        .build();
       connection.on('ReceiveMessage', dto => dotnetObj && dotnetObj.invokeMethodAsync('OnReceiveMessage', dto));
       connection.on('SystemNotice', text => dotnetObj && dotnetObj.invokeMethodAsync('OnSystemNotice', text));
+      connection.onreconnected(() => connection.invoke('JoinCampaignGroup', currentCampaignId));
       try {
         await connection.start();
       } catch (err) {
@@ -31,3 +37,4 @@ window.chat = (function(){
     }
   }
 })();
+
