@@ -5,6 +5,8 @@
 @inject NavigationManager Nav
 @inject IJSRuntime JS
 @using RpgRooms.Core.Application.DTOs
+@using System.Net
+@using Microsoft.JSInterop
 
 <h3>@campaign?.Name</h3>
 @if (campaign is null)
@@ -90,8 +92,21 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        campaign = await Http.GetFromJsonAsync<Campaign>($"/api/campaigns/{id}");
-        messages = await Http.GetFromJsonAsync<List<ChatMessageDto>>($"/api/campaigns/{id}/messages") ?? new();
+        var campaignResponse = await Http.GetAsync($"/api/campaigns/{id}");
+        if (campaignResponse.StatusCode == HttpStatusCode.Unauthorized)
+        {
+            Nav.NavigateTo($"/login?returnUrl=/campaigns/{id}", true);
+            return;
+        }
+        campaignResponse.EnsureSuccessStatusCode();
+        campaign = await campaignResponse.Content.ReadFromJsonAsync<Campaign>();
+
+        var messagesResponse = await Http.GetAsync($"/api/campaigns/{id}/messages");
+        if (messagesResponse.IsSuccessStatusCode)
+        {
+            messages = await messagesResponse.Content.ReadFromJsonAsync<List<ChatMessageDto>>() ?? new();
+        }
+
         await RefreshIsGm();
         if (isGm)
         {
@@ -104,7 +119,18 @@ else
     {
         if (firstRender)
         {
-            await JS.InvokeVoidAsync("chat.join", id.ToString(), DotNetObjectReference.Create(this));
+            var user = (await AuthStateTask).User;
+            if (user.Identity?.IsAuthenticated == true)
+            {
+                try
+                {
+                    await JS.InvokeVoidAsync("chat.join", id.ToString(), DotNetObjectReference.Create(this));
+                }
+                catch (JSException)
+                {
+                    // Ignora falhas de conexão do SignalR
+                }
+            }
         }
     }
 
