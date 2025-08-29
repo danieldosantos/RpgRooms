@@ -19,6 +19,7 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<JoinRequest> JoinRequests => Set<JoinRequest>();
     public DbSet<ChatMessage> ChatMessages => Set<ChatMessage>();
     public DbSet<AuditEntry> AuditEntries => Set<AuditEntry>();
+    public DbSet<CampaignExit> CampaignExits => Set<CampaignExit>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {

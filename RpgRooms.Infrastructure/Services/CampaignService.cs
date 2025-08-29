@@ -94,6 +94,12 @@ public class CampaignService : ICampaignService
         if (await _db.CampaignMembers.AnyAsync(m => m.CampaignId == campaignId && m.UserId == userId))
             throw new InvalidOperationException("Você já é membro.");
 
+        var cutoff = DateTimeOffset.UtcNow.AddHours(-12);
+        var recentExit = await _db.CampaignExits
+            .AnyAsync(e => e.CampaignId == campaignId && e.UserId == userId && e.ExitedAt > cutoff);
+        if (recentExit)
+            throw new InvalidOperationException("Aguarde 12h antes de solicitar novamente.");
+
         var req = new JoinRequest { CampaignId = campaignId, UserId = userId, Message = message };
         _db.JoinRequests.Add(req);
         await _db.SaveChangesAsync();
@@ -164,6 +170,7 @@ public class CampaignService : ICampaignService
         var member = await _db.CampaignMembers.FirstOrDefaultAsync(m => m.CampaignId == campaignId && m.UserId == targetUserId)
             ?? throw new InvalidOperationException("Membro não encontrado");
         _db.CampaignMembers.Remove(member);
+        _db.CampaignExits.Add(new CampaignExit { CampaignId = campaignId, UserId = targetUserId, IsKick = true });
         await _db.SaveChangesAsync();
         await Audit("KickMember", gmUserId, campaignId, new { targetUserId, reason });
     }
@@ -177,6 +184,7 @@ public class CampaignService : ICampaignService
             ?? throw new InvalidOperationException("Você não é membro desta campanha");
 
         _db.CampaignMembers.Remove(member);
+        _db.CampaignExits.Add(new CampaignExit { CampaignId = campaignId, UserId = userId, IsKick = false });
         await _db.SaveChangesAsync();
         await Audit("LeaveCampaign", userId, campaignId, new { });
 
