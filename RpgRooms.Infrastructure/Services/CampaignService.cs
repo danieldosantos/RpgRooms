@@ -161,7 +161,10 @@ public class CampaignService : ICampaignService
     {
         var q = _db.Campaigns.AsQueryable();
         if (!string.IsNullOrWhiteSpace(search)) q = q.Where(c => c.Name.Contains(search) || (c.Description ?? "").Contains(search));
-        if (recruitingOnly) q = q.Where(c => c.IsRecruiting);
+        if (recruitingOnly)
+            q = q.Where(c => c.IsRecruiting);
+        else
+            q = q.Where(c => c.IsRecruiting || c.Status == CampaignStatus.Finalized);
         if (!string.IsNullOrWhiteSpace(ownerUserId)) q = q.Where(c => c.OwnerUserId == ownerUserId);
         if (!string.IsNullOrWhiteSpace(status) && Enum.TryParse<CampaignStatus>(status, out var st)) q = q.Where(c => c.Status == st);
 
