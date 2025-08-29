@@ -91,6 +91,7 @@ else
     protected override async Task OnInitializedAsync()
     {
         campaign = await Http.GetFromJsonAsync<Campaign>($"/api/campaigns/{id}");
+        messages = await Http.GetFromJsonAsync<List<ChatMessageDto>>($"/api/campaigns/{id}/messages") ?? new();
         await JS.InvokeVoidAsync("chat.join", id.ToString(), DotNetObjectReference.Create(this));
         await RefreshIsGm();
         if (isGm)

@@ -1,4 +1,5 @@
 using RpgRooms.Core.Application.Interfaces;
+using RpgRooms.Core.Application.DTOs;
 
 namespace RpgRooms.Web.Endpoints;
 
@@ -62,6 +63,16 @@ public static class CampaignEndpoints
             var userId = http.User.Identity!.Name!;
             var list = await svc.ListMembersAsync(id, userId);
             return Results.Ok(list);
+        });
+
+        g.MapGet("{id:guid}/messages", async (Guid id, ICampaignService svc, HttpContext http) =>
+        {
+            var userId = http.User.Identity!.Name!;
+            if (!await svc.IsMemberAsync(id, userId) && !await svc.IsGmAsync(id, userId))
+                return Results.Forbid();
+            var list = await svc.ListChatMessagesAsync(id);
+            var dtos = list.Select(m => new ChatMessageDto(m.Id, m.DisplayName, m.Content, m.SentAsCharacter, m.CreatedAt));
+            return Results.Ok(dtos);
         });
 
         g.MapDelete("{id:guid}/members/{targetUserId}", async (Guid id, string targetUserId, ICampaignService svc, HttpContext http, string? reason) =>
