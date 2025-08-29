@@ -182,6 +182,15 @@ public class CampaignService : ICampaignService
         return msg;
     }
 
+    public async Task<IReadOnlyList<ChatMessage>> ListChatMessagesAsync(Guid campaignId)
+    {
+        var list = await _db.ChatMessages
+            .Where(m => m.CampaignId == campaignId)
+            .OrderBy(m => m.CreatedAt)
+            .ToListAsync();
+        return list;
+    }
+
     public Task<bool> IsMemberAsync(Guid campaignId, string userId) =>
         _db.CampaignMembers.AnyAsync(m => m.CampaignId == campaignId && m.UserId == userId);
 

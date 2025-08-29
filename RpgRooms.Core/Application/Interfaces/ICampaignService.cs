@@ -21,6 +21,7 @@ public interface ICampaignService
     Task<Campaign?> GetCampaignAsync(Guid campaignId);
 
     Task<ChatMessage> AddChatMessageAsync(Guid campaignId, string userId, string displayName, string content, bool sentAsCharacter);
+    Task<IReadOnlyList<ChatMessage>> ListChatMessagesAsync(Guid campaignId);
     Task<bool> IsMemberAsync(Guid campaignId, string userId);
     Task<bool> IsGmAsync(Guid campaignId, string userId);
     Task<int> CountMembersAsync(Guid campaignId);
