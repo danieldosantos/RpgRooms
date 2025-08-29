@@ -212,6 +212,38 @@ public class CampaignService : ICampaignService
         }
     }
 
+    public async Task HandleCharacterExitAsync(Guid campaignId, string exitedUserId, string gmUserId, string? transferToUserId)
+    {
+        var campaign = await _db.Campaigns.FirstAsync(x => x.Id == campaignId);
+        if (campaign.OwnerUserId != gmUserId)
+            throw new UnauthorizedAccessException("Apenas o GM pode gerenciar fichas de jogadores que saíram.");
+
+        var exitExists = await _db.CampaignExits.AnyAsync(e => e.CampaignId == campaignId && e.UserId == exitedUserId);
+        if (!exitExists)
+            throw new InvalidOperationException("Saída de jogador não encontrada.");
+
+        var chars = await _db.Characters
+            .Where(ch => ch.CampaignId == campaignId && ch.UserId == exitedUserId)
+            .ToListAsync();
+
+        if (transferToUserId is null)
+        {
+            if (chars.Any())
+                _db.Characters.RemoveRange(chars);
+            await _db.SaveChangesAsync();
+            await Audit("ExitRemoveCharacters", gmUserId, campaignId, new { exitedUserId, count = chars.Count });
+        }
+        else
+        {
+            var member = await _db.CampaignMembers.FirstOrDefaultAsync(m => m.CampaignId == campaignId && m.UserId == transferToUserId)
+                ?? throw new InvalidOperationException("Usuário de destino não é membro.");
+            foreach (var ch in chars)
+                ch.UserId = transferToUserId;
+            await _db.SaveChangesAsync();
+            await Audit("ExitTransferCharacters", gmUserId, campaignId, new { exitedUserId, transferToUserId, count = chars.Count });
+        }
+    }
+
     public async Task<IReadOnlyList<Campaign>> ListUserCampaignsAsync(string userId)
     {
         var list = await _db.Campaigns

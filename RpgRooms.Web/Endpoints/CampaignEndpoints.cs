@@ -96,6 +96,13 @@ public static class CampaignEndpoints
             return Results.Ok();
         });
 
+        g.MapPut("{id:guid}/exits/{targetUserId}/characters", async (Guid id, string targetUserId, ICampaignService svc, HttpContext http, HandleExitCharactersDto dto) =>
+        {
+            var userId = http.User.Identity!.Name!;
+            await svc.HandleCharacterExitAsync(id, targetUserId, userId, dto.NewUserId);
+            return Results.Ok();
+        });
+
         g.MapGet("mine", async (ICampaignService svc, HttpContext http) =>
         {
             var userId = http.User.Identity!.Name!;
@@ -121,3 +128,4 @@ public static class CampaignEndpoints
 
 public record CreateCampaignDto(string Name, string? Description);
 public record CreateJoinRequestDto(string? Message);
+public record HandleExitCharactersDto(string? NewUserId);

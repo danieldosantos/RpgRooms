@@ -125,4 +125,51 @@ public class CampaignRulesTests
         var req = await svc.CreateJoinRequestAsync(camp.Id, "p1", null);
         Assert.NotNull(req);
     }
+
+    [Fact]
+    public async Task AprovarJoinCriaCharacter()
+    {
+        var opts = new DbContextOptionsBuilder<AppDbContext>().UseInMemoryDatabase("t9").Options;
+        var db = new AppDbContext(opts);
+        var svc = new CampaignService(db);
+        var camp = await svc.CreateCampaignAsync("gm", "A", null);
+        await svc.ToggleRecruitmentAsync(camp.Id, "gm");
+        var req = await svc.CreateJoinRequestAsync(camp.Id, "p1", null);
+        await svc.ApproveJoinRequestAsync(camp.Id, req.Id, "gm");
+        Assert.Equal(1, await db.Characters.CountAsync());
+    }
+
+    [Fact]
+    public async Task HandleExitRemoveCharacters()
+    {
+        var opts = new DbContextOptionsBuilder<AppDbContext>().UseInMemoryDatabase("t10").Options;
+        var db = new AppDbContext(opts);
+        var svc = new CampaignService(db);
+        var camp = await svc.CreateCampaignAsync("gm", "A", null);
+        await svc.ToggleRecruitmentAsync(camp.Id, "gm");
+        var req = await svc.CreateJoinRequestAsync(camp.Id, "p1", null);
+        await svc.ApproveJoinRequestAsync(camp.Id, req.Id, "gm");
+        await svc.LeaveCampaignAsync(camp.Id, "p1");
+        await svc.HandleCharacterExitAsync(camp.Id, "p1", "gm", null);
+        Assert.Equal(0, await db.Characters.CountAsync());
+    }
+
+    [Fact]
+    public async Task HandleExitTransferCharacters()
+    {
+        var opts = new DbContextOptionsBuilder<AppDbContext>().UseInMemoryDatabase("t11").Options;
+        var db = new AppDbContext(opts);
+        var svc = new CampaignService(db);
+        var camp = await svc.CreateCampaignAsync("gm", "A", null);
+        await svc.ToggleRecruitmentAsync(camp.Id, "gm");
+        var req1 = await svc.CreateJoinRequestAsync(camp.Id, "p1", null);
+        await svc.ApproveJoinRequestAsync(camp.Id, req1.Id, "gm");
+        var req2 = await svc.CreateJoinRequestAsync(camp.Id, "p2", null);
+        await svc.ApproveJoinRequestAsync(camp.Id, req2.Id, "gm");
+        await svc.LeaveCampaignAsync(camp.Id, "p1");
+        var character = await db.Characters.FirstAsync(c => c.UserId == "p1");
+        await svc.HandleCharacterExitAsync(camp.Id, "p1", "gm", "p2");
+        var updated = await db.Characters.FirstAsync(c => c.Id == character.Id);
+        Assert.Equal("p2", updated.UserId);
+    }
 }
