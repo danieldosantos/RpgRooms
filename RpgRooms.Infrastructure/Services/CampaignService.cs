@@ -16,6 +16,11 @@ public class CampaignService : ICampaignService
 
     public async Task<Campaign> CreateCampaignAsync(string ownerUserId, string name, string? description)
     {
+        var existing = await _db.Campaigns
+            .FirstOrDefaultAsync(c => c.OwnerUserId == ownerUserId && c.Name == name);
+        if (existing != null)
+            return existing;
+
         var c = new Campaign
         {
             OwnerUserId = ownerUserId,
