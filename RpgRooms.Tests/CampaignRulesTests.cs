@@ -20,4 +20,16 @@ public class CampaignRulesTests
         await db.SaveChangesAsync();
         await Assert.ThrowsAsync<InvalidOperationException>(() => svc.CreateJoinRequestAsync(camp.Id, "u51", null));
     }
+
+    [Fact]
+    public async Task NaoCriaCampanhaDuplicada()
+    {
+        var opts = new DbContextOptionsBuilder<AppDbContext>().UseInMemoryDatabase("t2").Options;
+        var db = new AppDbContext(opts);
+        var svc = new CampaignService(db);
+        var camp1 = await svc.CreateCampaignAsync("gm", "A", "desc1");
+        var camp2 = await svc.CreateCampaignAsync("gm", "A", "desc2");
+        Assert.Equal(camp1.Id, camp2.Id);
+        Assert.Equal(1, await db.Campaigns.CountAsync());
+    }
 }
