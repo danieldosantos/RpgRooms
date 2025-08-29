@@ -6,6 +6,7 @@ using RpgRooms.Infrastructure.Data;
 using System.Collections.Concurrent;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace RpgRooms.Web.Hubs;
 
@@ -27,7 +28,7 @@ public class CampaignChatHub : Hub
 
     public async Task JoinCampaignGroup(Guid campaignId)
     {
-        var userId = Context.User!.Identity!.Name!;
+        var userId = Context.User!.FindFirstValue(ClaimTypes.NameIdentifier)!;
         if (!await _svc.IsMemberAsync(campaignId, userId) && !await _svc.IsGmAsync(campaignId, userId))
             throw new HubException("Acesso negado ao chat desta campanha.");
         await Groups.AddToGroupAsync(Context.ConnectionId, GroupName(campaignId));
@@ -51,7 +52,7 @@ public class CampaignChatHub : Hub
 
     public async Task SendMessage(Guid campaignId, string displayName, string content, bool sentAsCharacter)
     {
-        var userId = Context.User!.Identity!.Name!;
+        var userId = Context.User!.FindFirstValue(ClaimTypes.NameIdentifier)!;
         var msg = await _svc.AddChatMessageAsync(campaignId, userId, displayName, content, sentAsCharacter);
         var dto = new ChatMessageDto(msg.Id, msg.DisplayName, msg.Content, msg.SentAsCharacter);
         await Clients.Group(GroupName(campaignId)).SendAsync("ReceiveMessage", dto);

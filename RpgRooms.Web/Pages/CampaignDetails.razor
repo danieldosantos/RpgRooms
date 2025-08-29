@@ -8,6 +8,7 @@
 @using RpgRooms.Core.Domain.Enums
 @using System.Net
 @using Microsoft.JSInterop
+@using System.Security.Claims
 @implements IAsyncDisposable
 
 <h3>@campaign?.Name</h3>
@@ -202,7 +203,7 @@ else
         try
         {
             var c = await Http.GetFromJsonAsync<Campaign>($"/api/campaigns/{id}");
-            var me = (await AuthStateTask)!.User.Identity!.Name;
+            var me = (await AuthStateTask)!.User.FindFirstValue(ClaimTypes.NameIdentifier);
             isGm = c?.OwnerUserId == me;
         }
         catch
