@@ -93,4 +93,36 @@ public class CampaignRulesTests
         await svc.FinalizeCampaignAsync(camp.Id, "gm");
         Assert.False(await svc.IsGmAsync(camp.Id, "gm"));
     }
+
+    [Fact]
+    public async Task NaoPermiteReentrarAntesDe12h()
+    {
+        var opts = new DbContextOptionsBuilder<AppDbContext>().UseInMemoryDatabase("t7").Options;
+        var db = new AppDbContext(opts);
+        var svc = new CampaignService(db);
+        var camp = await svc.CreateCampaignAsync("gm", "A", null);
+        await svc.ToggleRecruitmentAsync(camp.Id, "gm");
+        db.CampaignMembers.Add(new() { CampaignId = camp.Id, UserId = "p1" });
+        await db.SaveChangesAsync();
+        await svc.LeaveCampaignAsync(camp.Id, "p1");
+        await Assert.ThrowsAsync<InvalidOperationException>(() => svc.CreateJoinRequestAsync(camp.Id, "p1", null));
+    }
+
+    [Fact]
+    public async Task PermiteReentrarApos12h()
+    {
+        var opts = new DbContextOptionsBuilder<AppDbContext>().UseInMemoryDatabase("t8").Options;
+        var db = new AppDbContext(opts);
+        var svc = new CampaignService(db);
+        var camp = await svc.CreateCampaignAsync("gm", "A", null);
+        await svc.ToggleRecruitmentAsync(camp.Id, "gm");
+        db.CampaignMembers.Add(new() { CampaignId = camp.Id, UserId = "p1" });
+        await db.SaveChangesAsync();
+        await svc.LeaveCampaignAsync(camp.Id, "p1");
+        var exit = await db.CampaignExits.FirstAsync();
+        exit.ExitedAt = DateTimeOffset.UtcNow.AddHours(-13);
+        await db.SaveChangesAsync();
+        var req = await svc.CreateJoinRequestAsync(camp.Id, "p1", null);
+        Assert.NotNull(req);
+    }
 }
