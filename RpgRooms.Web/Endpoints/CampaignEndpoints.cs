@@ -89,6 +89,13 @@ public static class CampaignEndpoints
             return Results.Ok();
         });
 
+        g.MapDelete("{id:guid}/leave", async (Guid id, ICampaignService svc, HttpContext http) =>
+        {
+            var userId = http.User.Identity!.Name!;
+            await svc.LeaveCampaignAsync(id, userId);
+            return Results.Ok();
+        });
+
         g.MapGet("mine", async (ICampaignService svc, HttpContext http) =>
         {
             var userId = http.User.Identity!.Name!;

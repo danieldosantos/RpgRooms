@@ -168,6 +168,29 @@ public class CampaignService : ICampaignService
         await Audit("KickMember", gmUserId, campaignId, new { targetUserId, reason });
     }
 
+    public async Task LeaveCampaignAsync(Guid campaignId, string userId)
+    {
+        var c = await _db.Campaigns.FirstOrDefaultAsync(x => x.Id == campaignId)
+            ?? throw new InvalidOperationException("Campanha não encontrada");
+        if (c.OwnerUserId == userId) throw new InvalidOperationException("GM não pode sair da própria campanha.");
+        var member = await _db.CampaignMembers.FirstOrDefaultAsync(m => m.CampaignId == campaignId && m.UserId == userId)
+            ?? throw new InvalidOperationException("Você não é membro desta campanha");
+
+        _db.CampaignMembers.Remove(member);
+        await _db.SaveChangesAsync();
+        await Audit("LeaveCampaign", userId, campaignId, new { });
+
+        var count = await _db.CampaignMembers.CountAsync(m => m.CampaignId == campaignId && !m.IsBanned);
+        if (!c.IsRecruiting && c.Status != CampaignStatus.Finalized && count < MAX_PLAYERS)
+        {
+            c.IsRecruiting = true;
+            if (c.Status == CampaignStatus.InProgress) c.Status = CampaignStatus.Recruiting;
+            c.UpdatedAt = DateTimeOffset.UtcNow;
+            await _db.SaveChangesAsync();
+            await Audit("AutoOpenRecruitmentOnLeave", userId, campaignId, new { count });
+        }
+    }
+
     public async Task<IReadOnlyList<Campaign>> ListUserCampaignsAsync(string userId)
     {
         var list = await _db.Campaigns

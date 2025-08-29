@@ -27,6 +27,10 @@ else
                 <li>
                     <b>@c.Name</b> — @c.Status — @(c.IsRecruiting ? "Recrutando" : "Fechada")
                     <a href="/campaigns/@c.Id" style="margin-left:8px">ver</a>
+                    @if (c.OwnerUserId != userId)
+                    {
+                        <button class="btn" style="margin-left:4px" @onclick="() => Leave(c.Id)">sair</button>
+                    }
                 </li>
             }
         }
@@ -36,9 +40,13 @@ else
 @code {
     private List<Campaign>? campaigns;
     private string? error;
+    private string? userId;
+
+    [CascadingParameter] public Task<AuthenticationState> AuthStateTask { get; set; } = default!;
 
     protected override async Task OnInitializedAsync()
     {
+        userId = (await AuthStateTask).User.Identity?.Name;
         var response = await Http.GetAsync("/api/campaigns/mine");
         if (response.IsSuccessStatusCode)
         {
@@ -51,6 +59,16 @@ else
         else
         {
             error = "Falha ao carregar campanhas.";
+        }
+    }
+
+    private async Task Leave(Guid campaignId)
+    {
+        var res = await Http.DeleteAsync($"/api/campaigns/{campaignId}/leave");
+        if (res.IsSuccessStatusCode && campaigns is not null)
+        {
+            campaigns = campaigns.Where(c => c.Id != campaignId).ToList();
+            StateHasChanged();
         }
     }
 }
