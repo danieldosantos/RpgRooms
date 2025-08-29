@@ -2,8 +2,10 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using RpgRooms.Core.Application.Interfaces;
 using RpgRooms.Core.Application.DTOs;
+using RpgRooms.Infrastructure.Data;
 using System.Collections.Concurrent;
 using System.Linq;
+using Microsoft.EntityFrameworkCore;
 
 namespace RpgRooms.Web.Hubs;
 
@@ -11,7 +13,12 @@ namespace RpgRooms.Web.Hubs;
 public class CampaignChatHub : Hub
 {
     private readonly ICampaignService _svc;
-    public CampaignChatHub(ICampaignService svc) => _svc = svc;
+    private readonly AppDbContext _db;
+    public CampaignChatHub(ICampaignService svc, AppDbContext db)
+    {
+        _svc = svc;
+        _db = db;
+    }
 
     private static readonly ConcurrentDictionary<Guid, HashSet<string>> _connectedUsers = new();
     private static readonly ConcurrentDictionary<string, (Guid CampaignId, string UserId)> _connections = new();
@@ -28,14 +35,18 @@ public class CampaignChatHub : Hub
         _connections[Context.ConnectionId] = (campaignId, userId);
 
         var users = _connectedUsers.GetOrAdd(campaignId, _ => new HashSet<string>());
-        bool isFirst;
         lock (users)
         {
-            isFirst = users.Add(userId);
+            users.Add(userId);
         }
 
-        if (isFirst)
+        var member = await _db.CampaignMembers.FirstOrDefaultAsync(m => m.CampaignId == campaignId && m.UserId == userId);
+        if (member != null && !member.HasJoinNotice)
+        {
             await Clients.Group(GroupName(campaignId)).SendAsync("SystemNotice", $"{userId} entrou no chat.");
+            member.HasJoinNotice = true;
+            await _db.SaveChangesAsync();
+        }
     }
 
     public async Task SendMessage(Guid campaignId, string displayName, string content, bool sentAsCharacter)

@@ -8,4 +8,5 @@ public class CampaignMember
     public string? CharacterName { get; set; }
     public DateTimeOffset JoinedAt { get; set; } = DateTimeOffset.UtcNow;
     public bool IsBanned { get; set; } = false;
+    public bool HasJoinNotice { get; set; } = false;
 }
