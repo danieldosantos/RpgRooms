@@ -1,0 +1,65 @@
+@using RpgRooms.Core.Domain.Entities
+<div class="rpg-section">
+  <h4>Atributos</h4>
+  <div>
+    <label>Força:</label>
+    @if(!IsReadOnly)
+    {
+        <input type="number" class="rpg-input" @bind="Character.Str" />
+    }
+    else { <span>@Character.Str</span> }
+    <span>Mod: @GetMod(Character.Str)</span>
+  </div>
+  <div>
+    <label>Destreza:</label>
+    @if(!IsReadOnly)
+    {
+        <input type="number" class="rpg-input" @bind="Character.Dex" />
+    }
+    else { <span>@Character.Dex</span> }
+    <span>Mod: @GetMod(Character.Dex)</span>
+  </div>
+  <div>
+    <label>Constituição:</label>
+    @if(!IsReadOnly)
+    {
+        <input type="number" class="rpg-input" @bind="Character.Con" />
+    }
+    else { <span>@Character.Con</span> }
+    <span>Mod: @GetMod(Character.Con)</span>
+  </div>
+  <div>
+    <label>Inteligência:</label>
+    @if(!IsReadOnly)
+    {
+        <input type="number" class="rpg-input" @bind="Character.Int" />
+    }
+    else { <span>@Character.Int</span> }
+    <span>Mod: @GetMod(Character.Int)</span>
+  </div>
+  <div>
+    <label>Sabedoria:</label>
+    @if(!IsReadOnly)
+    {
+        <input type="number" class="rpg-input" @bind="Character.Wis" />
+    }
+    else { <span>@Character.Wis</span> }
+    <span>Mod: @GetMod(Character.Wis)</span>
+  </div>
+  <div>
+    <label>Carisma:</label>
+    @if(!IsReadOnly)
+    {
+        <input type="number" class="rpg-input" @bind="Character.Cha" />
+    }
+    else { <span>@Character.Cha</span> }
+    <span>Mod: @GetMod(Character.Cha)</span>
+  </div>
+</div>
+
+@code {
+  [Parameter] public Character Character { get; set; } = default!;
+  [Parameter] public bool IsReadOnly { get; set; }
+
+  int GetMod(int score) => (score - 10) / 2;
+}

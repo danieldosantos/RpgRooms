@@ -1,0 +1,31 @@
+@page "/characters/sheet"
+<h3>Ficha de Personagem</h3>
+<div class="rpg-sheet page">
+    <IdentificationSection Character="character" IsReadOnly="true" />
+    <AttributesSection Character="character" IsReadOnly="true" />
+    <SavingThrowsSection Character="character" ProficiencyBonus="ProficiencyBonus" IsReadOnly="true" />
+    <SkillsSection Character="character" ProficiencyBonus="ProficiencyBonus" IsReadOnly="true" />
+    <AttacksSection Character="character" IsReadOnly="true" />
+    <InventorySection Character="character" IsReadOnly="true" />
+    <DescriptionSection Character="character" IsReadOnly="true" />
+</div>
+
+@code {
+    Character character = new()
+    {
+        Name = "Herói",
+        Race = "Humano",
+        Class = "Guerreiro",
+        Level = 1,
+        Alignment = "ND",
+        Background = "Um guerreiro corajoso.",
+        Str = 15,
+        Dex = 12,
+        Con = 14,
+        Int = 10,
+        Wis = 13,
+        Cha = 8
+    };
+
+    int ProficiencyBonus => ((character.Level - 1) / 4) + 2;
+}

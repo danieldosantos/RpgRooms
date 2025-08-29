@@ -1,0 +1,55 @@
+@using RpgRooms.Core.Domain.Entities
+<div class="rpg-section">
+  <h4>Testes de Resistência</h4>
+  @foreach (var ability in abilities)
+  {
+      var proficient = Character.SavingThrowProficiencies.Any(p => p.Name == ability.Key);
+      <div>
+          @if(!IsReadOnly)
+          {
+              <input type="checkbox" checked="@proficient" @onchange="e => Toggle(ability.Key, (bool)e.Value)" />
+          }
+          <span>@ability.Display (@GetSave(ability.Key))</span>
+      </div>
+  }
+</div>
+
+@code {
+  [Parameter] public Character Character { get; set; } = default!;
+  [Parameter] public bool IsReadOnly { get; set; }
+  [Parameter] public int ProficiencyBonus { get; set; }
+
+  record Ability(string Key, string Display);
+  Ability[] abilities = new[] {
+     new Ability("Str","Força"),
+     new Ability("Dex","Destreza"),
+     new Ability("Con","Constituição"),
+     new Ability("Int","Inteligência"),
+     new Ability("Wis","Sabedoria"),
+     new Ability("Cha","Carisma")
+  };
+
+  int GetScore(string key) => key switch {
+     "Str" => Character.Str,
+     "Dex" => Character.Dex,
+     "Con" => Character.Con,
+     "Int" => Character.Int,
+     "Wis" => Character.Wis,
+     "Cha" => Character.Cha,
+     _ => 10
+  };
+  int GetMod(string key) => (GetScore(key) - 10) / 2;
+  int GetSave(string key)
+  {
+     var total = GetMod(key);
+     if (Character.SavingThrowProficiencies.Any(p => p.Name == key))
+        total += ProficiencyBonus;
+     return total;
+  }
+  void Toggle(string key, bool value)
+  {
+     var prof = Character.SavingThrowProficiencies.FirstOrDefault(p => p.Name == key);
+     if (value && prof == null) Character.SavingThrowProficiencies.Add(new SavingThrowProficiency { Name = key });
+     if (!value && prof != null) Character.SavingThrowProficiencies.Remove(prof);
+  }
+}

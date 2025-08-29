@@ -1,0 +1,57 @@
+@using RpgRooms.Core.Domain.Entities
+<div class="rpg-section">
+  <h4>Identificação</h4>
+  <div>
+    <label>Nome:</label>
+    @if (!IsReadOnly)
+    {
+        <input class="rpg-input" @bind="Character.Name" />
+    }
+    else { <span>@Character.Name</span> }
+  </div>
+  <div>
+    <label>Raça:</label>
+    @if (!IsReadOnly)
+    {
+        <input class="rpg-input" @bind="Character.Race" />
+    }
+    else { <span>@Character.Race</span> }
+  </div>
+  <div>
+    <label>Classe:</label>
+    @if (!IsReadOnly)
+    {
+        <input class="rpg-input" @bind="Character.Class" />
+    }
+    else { <span>@Character.Class</span> }
+  </div>
+  <div>
+    <label>Nível:</label>
+    @if (!IsReadOnly)
+    {
+        <input type="number" class="rpg-input" @bind="Character.Level" />
+    }
+    else { <span>@Character.Level</span> }
+  </div>
+  <div>
+    <label>Alinhamento:</label>
+    @if (!IsReadOnly)
+    {
+        <input class="rpg-input" @bind="Character.Alignment" />
+    }
+    else { <span>@Character.Alignment</span> }
+  </div>
+  <div>
+    <label>XP:</label>
+    @if (!IsReadOnly)
+    {
+        <input type="number" class="rpg-input" @bind="Character.XP" />
+    }
+    else { <span>@Character.XP</span> }
+  </div>
+</div>
+
+@code {
+  [Parameter] public Character Character { get; set; } = default!;
+  [Parameter] public bool IsReadOnly { get; set; }
+}
