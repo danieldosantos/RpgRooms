@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using RpgRooms.Core.Application.Interfaces;
 using RpgRooms.Core.Domain.Entities;
 using RpgRooms.Core.Security;
+using System.Security.Claims;
 
 namespace RpgRooms.Web.Endpoints;
 
@@ -13,7 +14,7 @@ public static class CharacterEndpoints
 
         g.MapGet("{charId:guid}", async (Guid id, Guid charId, ICharacterService charSvc, IAuthorizationService auth, HttpContext http) =>
         {
-            var userId = http.User.Identity!.Name!;
+            var userId = http.User.FindFirstValue(ClaimTypes.NameIdentifier)!;
             var sheet = await charSvc.GetCharacterAsync(charId);
             if (sheet is null || sheet.Character.CampaignId != id)
                 return Results.NotFound();
@@ -26,7 +27,7 @@ public static class CharacterEndpoints
 
         g.MapPost("", async (Guid id, Character character, ICharacterService charSvc, ICampaignService campSvc, IAuthorizationService auth, HttpContext http) =>
         {
-            var userId = http.User.Identity!.Name!;
+            var userId = http.User.FindFirstValue(ClaimTypes.NameIdentifier)!;
             var isGm = (await auth.AuthorizeAsync(http.User, null, Policies.IsGmOfCampaign)).Succeeded;
             if (!isGm && !await campSvc.IsMemberAsync(id, userId))
                 return Results.Forbid();
@@ -38,7 +39,7 @@ public static class CharacterEndpoints
 
         g.MapPut("{charId:guid}", async (Guid id, Guid charId, Character character, ICharacterService charSvc, HttpContext http) =>
         {
-            var userId = http.User.Identity!.Name!;
+            var userId = http.User.FindFirstValue(ClaimTypes.NameIdentifier)!;
             var sheet = await charSvc.UpdateCharacterAsync(charId, character, userId);
             if (sheet.Character.CampaignId != id)
                 return Results.BadRequest();
@@ -47,7 +48,7 @@ public static class CharacterEndpoints
 
         g.MapDelete("{charId:guid}", async (Guid id, Guid charId, ICharacterService charSvc, IAuthorizationService auth, HttpContext http) =>
         {
-            var userId = http.User.Identity!.Name!;
+            var userId = http.User.FindFirstValue(ClaimTypes.NameIdentifier)!;
             var sheet = await charSvc.GetCharacterAsync(charId);
             if (sheet is null || sheet.Character.CampaignId != id)
                 return Results.NotFound();

@@ -76,7 +76,7 @@ class TestHubCallerClients : IHubCallerClients
 class TestHubCallerContext : HubCallerContext
 {
     public override string ConnectionId { get; }
-    public override string? UserIdentifier => User.Identity?.Name;
+    public override string? UserIdentifier => User.FindFirstValue(ClaimTypes.NameIdentifier);
     public override ClaimsPrincipal User { get; }
     private readonly Dictionary<object, object?> _items = new();
     public override IDictionary<object, object?> Items => _items;
@@ -87,6 +87,6 @@ class TestHubCallerContext : HubCallerContext
     public TestHubCallerContext(string connectionId, string userId)
     {
         ConnectionId = connectionId;
-        User = new ClaimsPrincipal(new ClaimsIdentity(new[] { new Claim(ClaimTypes.Name, userId) }));
+        User = new ClaimsPrincipal(new ClaimsIdentity(new[] { new Claim(ClaimTypes.NameIdentifier, userId) }));
     }
 }
