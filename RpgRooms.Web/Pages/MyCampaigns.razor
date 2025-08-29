@@ -1,0 +1,34 @@
+@page "/campaigns/mine"
+@inject HttpClient Http
+
+<h3>Minhas Campanhas</h3>
+
+<ul>
+    @if (campaigns is null)
+    {
+        <li>Carregando...</li>
+    }
+    else if (campaigns.Count == 0)
+    {
+        <li>Nenhuma campanha encontrada.</li>
+    }
+    else
+    {
+        @foreach (var c in campaigns)
+        {
+            <li>
+                <b>@c.Name</b> — @c.Status — @(c.IsRecruiting ? "Recrutando" : "Fechada")
+                <a href="/campaigns/@c.Id" style="margin-left:8px">ver</a>
+            </li>
+        }
+    }
+</ul>
+
+@code {
+    private List<Campaign>? campaigns;
+
+    protected override async Task OnInitializedAsync()
+    {
+        campaigns = await Http.GetFromJsonAsync<List<Campaign>>("/api/campaigns/mine") ?? new();
+    }
+}
