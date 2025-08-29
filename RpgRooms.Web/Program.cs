@@ -82,6 +82,7 @@ app.MapHub<CampaignChatHub>("/hubs/campaign-chat");
 
 // Minimal APIs
 app.MapCampaignEndpoints();
+app.MapCharacterEndpoints();
 
 app.MapFallbackToPage("/_Host");
 
