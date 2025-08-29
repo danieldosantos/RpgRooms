@@ -32,6 +32,7 @@ builder.Services.AddServerSideBlazor();
 builder.Services.AddSignalR();
 
 builder.Services.AddScoped<ICampaignService, CampaignService>();
+builder.Services.AddScoped<ICharacterService, CharacterService>();
 
 builder.Services.AddAuthorization(options =>
 {
