@@ -8,6 +8,7 @@
 @using RpgRooms.Core.Domain.Enums
 @using System.Net
 @using Microsoft.JSInterop
+@implements IAsyncDisposable
 
 <h3>@campaign?.Name</h3>
 @if (loadFailed)
@@ -119,6 +120,7 @@ else
     bool isGm;
     bool isMember;
     bool loadFailed;
+    DotNetObjectReference<CampaignDetails>? _objRef;
 
     [CascadingParameter] public Task<AuthenticationState> AuthStateTask { get; set; } = default!;
 
@@ -174,29 +176,24 @@ else
                     }
                 }
             }
-        }
-        catch
-        {
-            loadFailed = true;
-        }
-    }
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {
             var user = (await AuthStateTask).User;
             if (user.Identity?.IsAuthenticated == true && (isGm || isMember))
             {
                 try
                 {
-                    await JS.InvokeVoidAsync("chat.join", id.ToString(), DotNetObjectReference.Create(this));
+                    _objRef = DotNetObjectReference.Create(this);
+                    await JS.InvokeVoidAsync("chat.join", id.ToString(), _objRef);
                 }
                 catch (JSException)
                 {
                     // Ignora falhas de conexão do SignalR
                 }
             }
+        }
+        catch
+        {
+            loadFailed = true;
         }
     }
 
@@ -302,5 +299,22 @@ else
     private async Task HandleKey(KeyboardEventArgs e)
     {
         if (e.Key == "Enter") await Send();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_objRef is not null)
+        {
+            try
+            {
+                await JS.InvokeVoidAsync("chat.leave", id.ToString());
+            }
+            catch (JSException)
+            {
+                // Ignora falhas de conexão do SignalR
+            }
+
+            _objRef.Dispose();
+        }
     }
 }
