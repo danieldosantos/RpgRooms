@@ -4,7 +4,9 @@
 @inject UserManager<ApplicationUser> UserManager
 @inject Microsoft.AspNetCore.Antiforgery.IAntiforgery AntiForgery
 @{
-    var tokens = AntiForgery.GetAndStoreTokens(HttpContext);
+    // Use the current HTTP context exposed via the Razor Page's Context property
+    // instead of referring to the HttpContext type directly.
+    var tokens = AntiForgery.GetAndStoreTokens(Context);
 }
 
 <ul class="navbar-nav">
