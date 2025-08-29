@@ -1,9 +1,13 @@
+@using Microsoft.AspNetCore.Components
 @using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Identity
+@using RpgRooms.Infrastructure.Data
+
 <AuthorizeView>
     <Authorized>
         <span>Olá, @context.User.Identity?.Name!</span>
         <a href="/Identity/Account/Manage">Conta</a>
-        <form method="post" action="/Identity/Account/Logout" style="display:inline">
+        <form @onsubmit="LogoutAsync" style="display:inline">
             <button type="submit">Sair</button>
         </form>
     </Authorized>
@@ -12,3 +16,14 @@
         <a href="/Identity/Account/Register">Registrar</a>
     </NotAuthorized>
 </AuthorizeView>
+
+@code {
+    [Inject] private SignInManager<ApplicationUser> SignInManager { get; set; } = default!;
+    [Inject] private NavigationManager Nav { get; set; } = default!;
+
+    private async Task LogoutAsync()
+    {
+        await SignInManager.SignOutAsync();
+        Nav.NavigateTo("/Identity/Account/Login", true);
+    }
+}
