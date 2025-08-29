@@ -122,6 +122,9 @@ else
     bool isMember;
     bool loadFailed;
     private DotNetObjectReference<CampaignDetails>? _objRef;
+    // Indicates the component is still in the prerendering phase. Used to avoid
+    // invoking JS interop before the circuit is fully active.
+    private bool _prerendering = true;
 
     [CascadingParameter] public Task<AuthenticationState> AuthStateTask { get; set; } = default!;
 
@@ -195,6 +198,14 @@ else
         catch
         {
             loadFailed = true;
+        }
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _prerendering = false;
         }
     }
 
@@ -306,13 +317,20 @@ else
     {
         if (_objRef is not null)
         {
-            try
+            if (JS is not null && !_prerendering)
             {
-                await JS.InvokeVoidAsync("chat.leave", id.ToString());
-            }
-            catch (JSException)
-            {
-                // Ignora falhas de conexão do SignalR
+                try
+                {
+                    await JS.InvokeVoidAsync("chat.leave", id.ToString());
+                }
+                catch (JSException)
+                {
+                    // Ignora falhas de conexão do SignalR
+                }
+                catch (InvalidOperationException)
+                {
+                    // Evita invocar JS quando o circuito já foi encerrado
+                }
             }
 
             _objRef.Dispose();
