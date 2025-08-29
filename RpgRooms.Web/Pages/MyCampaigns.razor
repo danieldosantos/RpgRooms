@@ -4,32 +4,52 @@
 
 <h3>Minhas Campanhas</h3>
 
-<ul>
-    @if (campaigns is null)
-    {
-        <li>Carregando...</li>
-    }
-    else if (campaigns.Count == 0)
-    {
-        <li>Nenhuma campanha encontrada.</li>
-    }
-    else
-    {
-        @foreach (var c in campaigns)
+@if (!string.IsNullOrEmpty(error))
+{
+    <p style="color:red">@error</p>
+}
+else
+{
+    <ul>
+        @if (campaigns is null)
         {
-            <li>
-                <b>@c.Name</b> — @c.Status — @(c.IsRecruiting ? "Recrutando" : "Fechada")
-                <a href="/campaigns/@c.Id" style="margin-left:8px">ver</a>
-            </li>
+            <li>Carregando...</li>
         }
-    }
-</ul>
+        else if (campaigns.Count == 0)
+        {
+            <li>Nenhuma campanha encontrada.</li>
+        }
+        else
+        {
+            @foreach (var c in campaigns)
+            {
+                <li>
+                    <b>@c.Name</b> — @c.Status — @(c.IsRecruiting ? "Recrutando" : "Fechada")
+                    <a href="/campaigns/@c.Id" style="margin-left:8px">ver</a>
+                </li>
+            }
+        }
+    </ul>
+}
 
 @code {
     private List<Campaign>? campaigns;
+    private string? error;
 
     protected override async Task OnInitializedAsync()
     {
-        campaigns = await Http.GetFromJsonAsync<List<Campaign>>("/api/campaigns/mine") ?? new();
+        var response = await Http.GetAsync("/api/campaigns/mine");
+        if (response.IsSuccessStatusCode)
+        {
+            campaigns = await response.Content.ReadFromJsonAsync<List<Campaign>>() ?? new();
+        }
+        else if (response.StatusCode == HttpStatusCode.Unauthorized)
+        {
+            error = "Por favor, faça login para ver suas campanhas.";
+        }
+        else
+        {
+            error = "Falha ao carregar campanhas.";
+        }
     }
 }
