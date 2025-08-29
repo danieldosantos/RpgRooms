@@ -24,6 +24,14 @@ else
     {
         <p>@campaign.Description</p>
         <p>GM: @campaign.OwnerUserId</p>
+        <form @onsubmit="SendJoinRequest" @onsubmit:preventDefault>
+            <textarea @bind="joinMessage"></textarea>
+            <button class="btn" type="submit" disabled="@joinSent">Enviar pedido</button>
+        </form>
+        @if (joinSent)
+        {
+            <p class="text-success">Pedido enviado!</p>
+        }
     }
     else
     {
@@ -98,6 +106,8 @@ else
     List<CampaignMember> members = new();
     string message = string.Empty;
     string displayName = string.Empty;
+    string joinMessage = string.Empty;
+    bool joinSent;
     bool sentAsCharacter;
     bool isGm;
     bool isMember;
@@ -236,6 +246,14 @@ else
         res.EnsureSuccessStatusCode();
         campaign = await Http.GetFromJsonAsync<Campaign>($"/api/campaigns/{id}");
         await RefreshIsGm();
+    }
+
+    private async Task SendJoinRequest()
+    {
+        var res = await Http.PostAsJsonAsync($"/api/campaigns/{id}/join-requests", new { Message = joinMessage });
+        res.EnsureSuccessStatusCode();
+        joinMessage = string.Empty;
+        joinSent = true;
     }
 
     private async Task Approve(Guid reqId)
