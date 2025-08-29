@@ -191,6 +191,7 @@ else
         var res = await Http.PutAsync($"/api/campaigns/{id}/finalize", null);
         res.EnsureSuccessStatusCode();
         campaign = await Http.GetFromJsonAsync<Campaign>($"/api/campaigns/{id}");
+        await RefreshIsGm();
     }
 
     private async Task SendJoinRequest()

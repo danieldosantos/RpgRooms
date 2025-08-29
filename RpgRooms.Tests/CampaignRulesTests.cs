@@ -81,4 +81,16 @@ public class CampaignRulesTests
 
         Assert.Equal(0, await db.CampaignMembers.CountAsync(m => m.CampaignId == camp.Id));
     }
+
+    [Fact]
+    public async Task IsGmRetornaFalseAposFinalizar()
+    {
+        var opts = new DbContextOptionsBuilder<AppDbContext>().UseInMemoryDatabase("t6").Options;
+        var db = new AppDbContext(opts);
+        var svc = new CampaignService(db);
+        var camp = await svc.CreateCampaignAsync("gm", "A", null);
+        Assert.True(await svc.IsGmAsync(camp.Id, "gm"));
+        await svc.FinalizeCampaignAsync(camp.Id, "gm");
+        Assert.False(await svc.IsGmAsync(camp.Id, "gm"));
+    }
 }
