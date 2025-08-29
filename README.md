@@ -197,8 +197,7 @@ curl -X POST https://localhost:5001/api/campaigns ^
   "id": "GUID",
   "displayName": "Trevor Galhart",
   "content": "Ataque certeiro!",
-  "sentAsCharacter": true,
-  "createdAt": "2025-08-28T12:00:00Z"
+  "sentAsCharacter": true
 }
 ```
 

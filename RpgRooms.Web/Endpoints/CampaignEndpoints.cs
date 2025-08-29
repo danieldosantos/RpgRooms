@@ -71,7 +71,7 @@ public static class CampaignEndpoints
             if (!await svc.IsMemberAsync(id, userId) && !await svc.IsGmAsync(id, userId))
                 return Results.Forbid();
             var list = await svc.ListChatMessagesAsync(id);
-            var dtos = list.Select(m => new ChatMessageDto(m.Id, m.DisplayName, m.Content, m.SentAsCharacter, m.CreatedAt));
+            var dtos = list.Select(m => new ChatMessageDto(m.Id, m.DisplayName, m.Content, m.SentAsCharacter));
             return Results.Ok(dtos);
         });
 
