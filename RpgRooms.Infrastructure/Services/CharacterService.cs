@@ -76,25 +76,25 @@ public class CharacterService : ICharacterService
         existing.Languages.Clear();
         existing.Features.Clear();
 
-        existing.SavingThrowProficiencies.AddRange(
-            character.SavingThrowProficiencies
-                .Select(p => new SavingThrowProficiency { CharacterId = existing.Id, Name = p.Name })
-        );
+        foreach (var p in character.SavingThrowProficiencies)
+            existing.SavingThrowProficiencies.Add(
+                new SavingThrowProficiency { CharacterId = existing.Id, Name = p.Name }
+            );
 
-        existing.SkillProficiencies.AddRange(
-            character.SkillProficiencies
-                .Select(p => new SkillProficiency { CharacterId = existing.Id, Name = p.Name })
-        );
+        foreach (var p in character.SkillProficiencies)
+            existing.SkillProficiencies.Add(
+                new SkillProficiency { CharacterId = existing.Id, Name = p.Name }
+            );
 
-        existing.Languages.AddRange(
-            character.Languages
-                .Select(l => new Language { CharacterId = existing.Id, Name = l.Name })
-        );
+        foreach (var l in character.Languages)
+            existing.Languages.Add(
+                new Language { CharacterId = existing.Id, Name = l.Name }
+            );
 
-        existing.Features.AddRange(
-            character.Features
-                .Select(f => new Feature { CharacterId = existing.Id, Name = f.Name })
-        );
+        foreach (var f in character.Features)
+            existing.Features.Add(
+                new Feature { CharacterId = existing.Id, Name = f.Name }
+            );
 
         await _db.SaveChangesAsync();
         return BuildSheet(existing);
