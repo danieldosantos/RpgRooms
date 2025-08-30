@@ -56,16 +56,18 @@ public class CharacterService : ICharacterService
         existing.Wis = character.Wis;
         existing.Cha = character.Cha;
 
-        _db.SavingThrowProficiencies.RemoveRange(existing.SavingThrowProficiencies);
-        _db.SkillProficiencies.RemoveRange(existing.SkillProficiencies);
-        await _db.SaveChangesAsync();
+        existing.SavingThrowProficiencies.Clear();
+        existing.SkillProficiencies.Clear();
 
-        existing.SavingThrowProficiencies = character.SavingThrowProficiencies
-            .Select(p => new SavingThrowProficiency { CharacterId = existing.Id, Name = p.Name })
-            .ToList();
-        existing.SkillProficiencies = character.SkillProficiencies
-            .Select(p => new SkillProficiency { CharacterId = existing.Id, Name = p.Name })
-            .ToList();
+        existing.SavingThrowProficiencies.AddRange(
+            character.SavingThrowProficiencies
+                .Select(p => new SavingThrowProficiency { CharacterId = existing.Id, Name = p.Name })
+        );
+
+        existing.SkillProficiencies.AddRange(
+            character.SkillProficiencies
+                .Select(p => new SkillProficiency { CharacterId = existing.Id, Name = p.Name })
+        );
 
         await _db.SaveChangesAsync();
         return BuildSheet(existing);
