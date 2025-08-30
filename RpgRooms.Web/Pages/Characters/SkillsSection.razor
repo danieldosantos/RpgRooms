@@ -1,4 +1,5 @@
 @using RpgRooms.Core.Domain.Entities
+@inject IJSRuntime JS
 <div class="rpg-section">
   <h4>Perícias</h4>
   @foreach (var skill in skills)
@@ -10,6 +11,7 @@
               <input type="checkbox" checked="@proficient" @onchange="e => Toggle(skill.Name, (bool)e.Value)" />
           }
           <span>@skill.Display (@Character.GetSkillValue(skill.Name))</span>
+          <button type="button" class="btn" @onclick="() => RollSkill(skill)">Roll</button>
       </div>
   }
 </div>
@@ -17,6 +19,7 @@
 @code {
   [Parameter] public Character Character { get; set; } = default!;
   [Parameter] public bool IsReadOnly { get; set; }
+  [Parameter] public Guid CampaignId { get; set; }
 
   record Skill(string Name, string Display);
   Skill[] skills = new[] {
@@ -44,5 +47,13 @@
       var prof = Character.SkillProficiencies.FirstOrDefault(p => p.Name == name);
       if (value && prof == null) Character.SkillProficiencies.Add(new SkillProficiency { Name = name });
       if (!value && prof != null) Character.SkillProficiencies.Remove(prof);
+  }
+
+  async Task RollSkill(Skill skill)
+  {
+      var d20 = Random.Shared.Next(1, 21);
+      var result = d20 + Character.GetSkillValue(skill.Name);
+      var message = $"{Character.Name} testa {skill.Display}: {result}";
+      await JS.InvokeVoidAsync("chat.send", CampaignId.ToString(), Character.Name, message, true);
   }
 }
