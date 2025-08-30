@@ -76,6 +76,13 @@ public class CharacterService : ICharacterService
         _db.Languages.RemoveRange(existing.Languages);
         _db.Features.RemoveRange(existing.Features);
 
+        existing.SavingThrowProficiencies.Clear();
+        existing.SkillProficiencies.Clear();
+        existing.Languages.Clear();
+        existing.Features.Clear();
+
+        await _db.SaveChangesAsync();
+
         foreach (var p in character.SavingThrowProficiencies)
             existing.SavingThrowProficiencies.Add(
                 new SavingThrowProficiency { CharacterId = existing.Id, Name = p.Name }
