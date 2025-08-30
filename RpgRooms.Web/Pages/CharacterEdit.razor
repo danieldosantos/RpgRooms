@@ -1,6 +1,7 @@
 @page "/campaigns/{campaignId:guid}/characters/{characterId:guid}/edit"
 @attribute [Authorize]
 @inject HttpClient Http
+@inject NavigationManager Nav
 
 <h3>Editar Personagem</h3>
 
@@ -64,8 +65,23 @@ else
 
     private async Task Save()
     {
-        var res = await Http.PutAsJsonAsync(
-            $"/api/campaigns/{campaignId}/characters/{characterId}", character);
-        res.EnsureSuccessStatusCode();
+        error = null;
+        try
+        {
+            var res = await Http.PutAsJsonAsync(
+                $"/api/campaigns/{campaignId}/characters/{characterId}", character);
+            if (res.IsSuccessStatusCode)
+            {
+                Nav.NavigateTo($"/campaigns/{campaignId}");
+            }
+            else
+            {
+                error = $"Falha ao salvar ficha ({res.StatusCode})";
+            }
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+        }
     }
 }

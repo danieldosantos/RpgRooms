@@ -71,10 +71,14 @@ public class CharacterService : ICharacterService
         existing.DeathSaves = character.DeathSaves;
         existing.Inspiration = character.Inspiration;
 
-        _db.SavingThrowProficiencies.RemoveRange(existing.SavingThrowProficiencies);
-        _db.SkillProficiencies.RemoveRange(existing.SkillProficiencies);
-        _db.Languages.RemoveRange(existing.Languages);
-        _db.Features.RemoveRange(existing.Features);
+        // Remove existing aggregates first to avoid concurrency issues when
+        // replacing the related collections. Copying the collections to lists
+        // prevents modification during enumeration.
+        _db.SavingThrowProficiencies.RemoveRange(existing.SavingThrowProficiencies.ToList());
+        _db.SkillProficiencies.RemoveRange(existing.SkillProficiencies.ToList());
+        _db.Languages.RemoveRange(existing.Languages.ToList());
+        _db.Features.RemoveRange(existing.Features.ToList());
+        await _db.SaveChangesAsync();
 
         existing.SavingThrowProficiencies.Clear();
         existing.SkillProficiencies.Clear();
