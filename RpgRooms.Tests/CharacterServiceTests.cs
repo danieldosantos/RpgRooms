@@ -59,4 +59,80 @@ public class CharacterServiceTests
 
         Assert.Equal(14, sheet.SpellDc);
     }
+
+    [Fact]
+    public async Task AtualizaColecoesRemoveRegistrosAntigos()
+    {
+        var opts = new DbContextOptionsBuilder<AppDbContext>().UseInMemoryDatabase("charsvc_update").Options;
+        var db = new AppDbContext(opts);
+        var svc = new CharacterService(db);
+        var character = new Character
+        {
+            UserId = "u1",
+            CampaignId = Guid.NewGuid(),
+            Name = "Hero",
+            Str = 10,
+            Dex = 10,
+            Con = 10,
+            Int = 10,
+            Wis = 10,
+            Cha = 10,
+            SavingThrowProficiencies = new List<SavingThrowProficiency>
+            {
+                new() { Name = "Str" }
+            },
+            SkillProficiencies = new List<SkillProficiency>
+            {
+                new() { Name = "Acrobatics" }
+            },
+            Languages = new List<Language>
+            {
+                new() { Name = "Common" }
+            },
+            Features = new List<Feature>
+            {
+                new() { Name = "Brave" }
+            }
+        };
+        await svc.CreateCharacterAsync(character);
+
+        var updated = new Character
+        {
+            Name = "Hero",
+            Str = 10,
+            Dex = 10,
+            Con = 10,
+            Int = 10,
+            Wis = 10,
+            Cha = 10,
+            SavingThrowProficiencies = new List<SavingThrowProficiency>
+            {
+                new() { Name = "Dex" }
+            },
+            SkillProficiencies = new List<SkillProficiency>
+            {
+                new() { Name = "Stealth" }
+            },
+            Languages = new List<Language>
+            {
+                new() { Name = "Elvish" }
+            },
+            Features = new List<Feature>
+            {
+                new() { Name = "Alert" }
+            }
+        };
+
+        await svc.UpdateCharacterAsync(character.Id, updated, "u1");
+        var sheet = await svc.GetCharacterAsync(character.Id);
+
+        Assert.Collection(sheet.Character.SavingThrowProficiencies,
+            p => Assert.Equal("Dex", p.Name));
+        Assert.Collection(sheet.Character.SkillProficiencies,
+            p => Assert.Equal("Stealth", p.Name));
+        Assert.Collection(sheet.Character.Languages,
+            l => Assert.Equal("Elvish", l.Name));
+        Assert.Collection(sheet.Character.Features,
+            f => Assert.Equal("Alert", f.Name));
+    }
 }
