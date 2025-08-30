@@ -90,6 +90,13 @@ public static class CampaignEndpoints
             return Results.Ok();
         });
 
+        g.MapPut("{id:guid}/members/{targetUserId}/character", async (Guid id, string targetUserId, ICampaignService svc, HttpContext http, SetMemberCharacterDto dto) =>
+        {
+            var userId = http.User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+            await svc.SetMemberCharacterAsync(id, targetUserId, dto.CharacterId, userId);
+            return Results.Ok();
+        });
+
         g.MapDelete("{id:guid}/leave", async (Guid id, ICampaignService svc, HttpContext http) =>
         {
             var userId = http.User.FindFirstValue(ClaimTypes.NameIdentifier)!;
@@ -130,3 +137,4 @@ public static class CampaignEndpoints
 public record CreateCampaignDto(string Name, string? Description);
 public record CreateJoinRequestDto(string? Message);
 public record HandleExitCharactersDto(string? NewUserId);
+public record SetMemberCharacterDto(Guid CharacterId);

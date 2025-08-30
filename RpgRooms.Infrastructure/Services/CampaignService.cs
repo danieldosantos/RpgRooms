@@ -252,6 +252,25 @@ public class CampaignService : ICampaignService
         }
     }
 
+    public async Task SetMemberCharacterAsync(Guid campaignId, string targetUserId, Guid characterId, string gmUserId)
+    {
+        var campaign = await _db.Campaigns.FindAsync(campaignId) ?? throw new InvalidOperationException("Campanha não encontrada");
+        if (campaign.OwnerUserId != gmUserId)
+            throw new UnauthorizedAccessException("Apenas o GM pode definir fichas de membros.");
+
+        var character = await _db.Characters.FirstOrDefaultAsync(c => c.Id == characterId && c.CampaignId == campaignId)
+            ?? throw new InvalidOperationException("Ficha não encontrada");
+        if (character.UserId != targetUserId)
+            throw new InvalidOperationException("Ficha pertence a outro usuário.");
+
+        var member = await _db.CampaignMembers.FirstOrDefaultAsync(m => m.CampaignId == campaignId && m.UserId == targetUserId)
+            ?? throw new InvalidOperationException("Membro não encontrado");
+
+        member.CharacterName = character.Name;
+        await _db.SaveChangesAsync();
+        await Audit("SetMemberCharacter", gmUserId, campaignId, new { targetUserId, characterId });
+    }
+
     public async Task<IReadOnlyList<Campaign>> ListUserCampaignsAsync(string userId)
     {
         var list = await _db.Campaigns

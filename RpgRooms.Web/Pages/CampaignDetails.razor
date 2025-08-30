@@ -82,6 +82,8 @@ else
                 @foreach (var m in members)
                 {
                     <div>@m.UserId (@m.CharacterName)
+                        <input @bind="memberCharIds[m.UserId]" placeholder="Ficha" style="margin-left:4px" />
+                        <button class="btn" @onclick="() => SetCharacter(m.UserId)" style="margin-left:4px">Definir</button>
                         <button class="btn" @onclick="() => Kick(m.UserId)" style="margin-left:4px">Remover</button>
                     </div>
                 }
@@ -127,6 +129,7 @@ else
     List<JoinRequest> joinRequests = new();
     List<CampaignMember> members = new();
     List<CharacterSheetDto> characters = new();
+    Dictionary<string, string> memberCharIds = new();
     string message = string.Empty;
     string displayName = string.Empty;
     string joinMessage = string.Empty;
@@ -315,6 +318,15 @@ else
         var res = await Http.DeleteAsync($"/api/campaigns/{id}/members/{userId}");
         res.EnsureSuccessStatusCode();
         await LoadMembers();
+    }
+
+    private async Task SetCharacter(string userId)
+    {
+        if (!memberCharIds.TryGetValue(userId, out var charIdStr)) return;
+        if (!Guid.TryParse(charIdStr, out var charId)) return;
+        var res = await Http.PutAsJsonAsync($"/api/campaigns/{id}/members/{userId}/character", new { CharacterId = charId });
+        if (res.IsSuccessStatusCode)
+            await LoadMembers();
     }
 
     private async Task Leave()
