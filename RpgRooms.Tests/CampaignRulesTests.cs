@@ -203,5 +203,6 @@ public class CampaignRulesTests
         await svc.SetMemberCharacterAsync(camp.Id, "p1", ch.Id, "gm");
         var member = await db.CampaignMembers.FirstAsync(m => m.CampaignId == camp.Id && m.UserId == "p1");
         Assert.Equal("Hero", member.CharacterName);
+        Assert.Equal(ch.Id, member.CharacterId);
     }
 }

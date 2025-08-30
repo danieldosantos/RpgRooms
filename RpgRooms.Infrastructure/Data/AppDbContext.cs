@@ -32,6 +32,10 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     {
         base.OnModelCreating(b);
         b.Entity<CampaignMember>().HasIndex(m => new { m.CampaignId, m.UserId }).IsUnique();
+        b.Entity<CampaignMember>()
+            .HasOne<Character>()
+            .WithMany()
+            .HasForeignKey(m => m.CharacterId);
         b.Entity<Campaign>()
             .HasIndex(c => new { c.OwnerUserId, c.Name })
             .IsUnique();

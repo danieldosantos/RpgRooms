@@ -264,6 +264,7 @@ public class CampaignService : ICampaignService
         var member = await _db.CampaignMembers.FirstOrDefaultAsync(m => m.CampaignId == campaignId && m.UserId == targetUserId)
             ?? throw new InvalidOperationException("Membro não encontrado");
 
+        member.CharacterId = characterId;
         member.CharacterName = character.Name;
         await _db.SaveChangesAsync();
         await Audit("SetMemberCharacter", gmUserId, campaignId, new { targetUserId, characterId });
