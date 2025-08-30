@@ -113,6 +113,11 @@ else
             }
         }
 
+        @if (isMember && !isGm)
+        {
+            <button class="btn" @onclick="CreateCharacter">Criar Ficha</button>
+        }
+
         <hr />
         <h4>Chat</h4>
         <label>Nome para exibir</label>
@@ -193,17 +198,6 @@ else
                 catch
                 {
                     characters = new();
-                }
-
-                if (isMember && !isGm && characters.Count == 0)
-                {
-                    var res = await Http.PostAsJsonAsync($"/api/campaigns/{id}/characters", new Character());
-                    if (res.IsSuccessStatusCode)
-                    {
-                        var sheet = await res.Content.ReadFromJsonAsync<CharacterSheetDto>();
-                        Nav.NavigateTo($"/campaigns/{id}/characters/{sheet!.Character.Id}/edit", true);
-                        return;
-                    }
                 }
 
                 if (isGm)
@@ -343,6 +337,19 @@ else
         var res = await Http.DeleteAsync($"/api/campaigns/{id}/members/{userId}");
         res.EnsureSuccessStatusCode();
         await LoadMembers();
+    }
+
+    private async Task CreateCharacter()
+    {
+        var name = await JS.InvokeAsync<string?>("prompt", "Nome do personagem:");
+        if (string.IsNullOrWhiteSpace(name) || name.Length < 3) return;
+        var res = await Http.PostAsJsonAsync($"/api/campaigns/{id}/characters", new Character { Name = name });
+        if (res.IsSuccessStatusCode)
+        {
+            var sheet = await res.Content.ReadFromJsonAsync<CharacterSheetDto>();
+            if (sheet?.Character is not null)
+                Nav.NavigateTo($"/campaigns/{id}/characters/{sheet.Character.Id}/edit", true);
+        }
     }
 
     private async Task SetCharacter(string userId)
