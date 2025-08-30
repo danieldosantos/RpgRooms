@@ -383,6 +383,10 @@ else
                 {
                     await JS.InvokeVoidAsync("chat.leave", id.ToString());
                 }
+                catch (JSDisconnectedException)
+                {
+                    // Ignora chamadas quando o circuito foi desconectado
+                }
                 catch (JSException)
                 {
                     // Ignora falhas de conexão do SignalR
