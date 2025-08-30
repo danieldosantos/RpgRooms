@@ -11,6 +11,6 @@ public interface ICharacterService
     Task<CharacterSheetDto> CreateCharacterAsync(Character character);
     Task<CharacterSheetDto> UpdateCharacterAsync(Guid id, Character character, string userId);
     Task<CharacterSheetDto?> GetCharacterAsync(Guid id);
-    Task<IEnumerable<CharacterSheetDto>> GetCharactersAsync(Guid campaignId, string userId);
+    Task<IEnumerable<CharacterSheetDto>> GetCharactersAsync(Guid campaignId, string userId, bool isGm);
     Task DeleteCharacterAsync(Guid id, string userId);
 }
