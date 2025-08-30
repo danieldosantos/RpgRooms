@@ -1,3 +1,4 @@
+using System;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using RpgRooms.Core.Application.Interfaces;
@@ -16,23 +17,39 @@ public class CampaignService : ICampaignService
 
     public async Task<Campaign> CreateCampaignAsync(string ownerUserId, string name, string? description)
     {
+        var normalizedName = name.Trim();
+        var searchName = normalizedName.ToLowerInvariant();
         var existing = await _db.Campaigns
-            .FirstOrDefaultAsync(c => c.OwnerUserId == ownerUserId && c.Name == name);
+            .FirstOrDefaultAsync(c => c.OwnerUserId == ownerUserId && c.Name.ToLower() == searchName);
         if (existing != null)
             return existing;
 
         var c = new Campaign
         {
             OwnerUserId = ownerUserId,
-            Name = name,
+            Name = normalizedName,
             Description = description,
             Status = CampaignStatus.InProgress,
             IsRecruiting = false,
             MaxPlayers = MAX_PLAYERS
         };
         _db.Campaigns.Add(c);
-        await _db.SaveChangesAsync();
-        await Audit("CreateCampaign", ownerUserId, c.Id, new { name });
+        try
+        {
+            await _db.SaveChangesAsync();
+        }
+        catch (DbUpdateException ex)
+        {
+            if (ex.InnerException?.Message.Contains("UNIQUE", StringComparison.OrdinalIgnoreCase) == true)
+            {
+                var existingCampaign = await _db.Campaigns
+                    .FirstOrDefaultAsync(c => c.OwnerUserId == ownerUserId && c.Name.ToLower() == searchName);
+                if (existingCampaign != null)
+                    return existingCampaign;
+            }
+            throw;
+        }
+        await Audit("CreateCampaign", ownerUserId, c.Id, new { name = normalizedName });
         return c;
     }
 
