@@ -30,6 +30,9 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     {
         base.OnModelCreating(b);
         b.Entity<CampaignMember>().HasIndex(m => new { m.CampaignId, m.UserId }).IsUnique();
+        b.Entity<Campaign>()
+            .HasIndex(c => new { c.OwnerUserId, c.Name })
+            .IsUnique();
         b.Entity<Campaign>().Property(c => c.MaxPlayers).HasDefaultValue(50);
 
         b.Entity<Character>()
