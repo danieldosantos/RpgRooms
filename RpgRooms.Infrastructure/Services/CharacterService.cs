@@ -81,8 +81,6 @@ public class CharacterService : ICharacterService
         existing.Languages.Clear();
         existing.Features.Clear();
 
-        await _db.SaveChangesAsync();
-
         foreach (var p in character.SavingThrowProficiencies)
             existing.SavingThrowProficiencies.Add(
                 new SavingThrowProficiency { CharacterId = existing.Id, Name = p.Name }
