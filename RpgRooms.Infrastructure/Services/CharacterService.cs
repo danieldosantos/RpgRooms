@@ -80,6 +80,16 @@ public class CharacterService : ICharacterService
         return c is null ? null : BuildSheet(c);
     }
 
+    public async Task<IEnumerable<CharacterSheetDto>> GetCharactersAsync(Guid campaignId, string userId)
+    {
+        var chars = await _db.Characters
+            .Include(c => c.SavingThrowProficiencies)
+            .Include(c => c.SkillProficiencies)
+            .Where(c => c.CampaignId == campaignId && c.UserId == userId)
+            .ToListAsync();
+        return chars.Select(BuildSheet);
+    }
+
     public async Task DeleteCharacterAsync(Guid id, string userId)
     {
         var existing = await _db.Characters
