@@ -1,0 +1,30 @@
+@using RpgRooms.Core.Domain.Entities
+<div class="rpg-section">
+  <h4>Línguas</h4>
+  <ul>
+    @foreach(var l in Character.Languages)
+    {
+        <li>@l.Name</li>
+    }
+  </ul>
+  @if(!IsReadOnly)
+  {
+      <input class="rpg-input" @bind="newLanguage" placeholder="Nova língua" />
+      <button class="btn" @onclick="AddLanguage">Adicionar</button>
+  }
+</div>
+
+@code {
+  [Parameter] public Character Character { get; set; } = default!;
+  [Parameter] public bool IsReadOnly { get; set; }
+
+  string newLanguage = string.Empty;
+  void AddLanguage()
+  {
+      if(!string.IsNullOrWhiteSpace(newLanguage))
+      {
+          Character.Languages.Add(new Language { Name = newLanguage });
+          newLanguage = string.Empty;
+      }
+  }
+}

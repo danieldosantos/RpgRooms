@@ -1,0 +1,30 @@
+@using RpgRooms.Core.Domain.Entities
+<div class="rpg-section">
+  <h4>Características</h4>
+  <ul>
+    @foreach(var f in Character.Features)
+    {
+        <li>@f.Name</li>
+    }
+  </ul>
+  @if(!IsReadOnly)
+  {
+      <input class="rpg-input" @bind="newFeature" placeholder="Nova característica" />
+      <button class="btn" @onclick="AddFeature">Adicionar</button>
+  }
+</div>
+
+@code {
+  [Parameter] public Character Character { get; set; } = default!;
+  [Parameter] public bool IsReadOnly { get; set; }
+
+  string newFeature = string.Empty;
+  void AddFeature()
+  {
+      if(!string.IsNullOrWhiteSpace(newFeature))
+      {
+          Character.Features.Add(new Feature { Name = newFeature });
+          newFeature = string.Empty;
+      }
+  }
+}
