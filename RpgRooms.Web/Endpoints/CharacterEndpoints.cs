@@ -12,6 +12,15 @@ public static class CharacterEndpoints
     {
         var g = app.MapGroup("/api/campaigns/{id:guid}/characters").RequireAuthorization();
 
+        g.MapGet("", async (Guid id, ICharacterService charSvc, ICampaignService campSvc, HttpContext http) =>
+        {
+            var userId = http.User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+            if (!await campSvc.IsMemberAsync(id, userId) && !await campSvc.IsGmAsync(id, userId))
+                return Results.Forbid();
+            var list = await charSvc.GetCharactersAsync(id, userId);
+            return Results.Ok(list);
+        });
+
         g.MapGet("{charId:guid}", async (Guid id, Guid charId, ICharacterService charSvc, IAuthorizationService auth, HttpContext http) =>
         {
             var userId = http.User.FindFirstValue(ClaimTypes.NameIdentifier)!;

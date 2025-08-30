@@ -88,6 +88,19 @@ else
             }
         }
 
+        <h4>Meus Personagens</h4>
+        @if (characters.Count == 0)
+        {
+            <p>Nenhum personagem.</p>
+        }
+        else
+        {
+            @foreach (var c in characters)
+            {
+                <div><a href="/campaigns/@id/characters/@c.Character.Id/edit">@c.Character.Name</a></div>
+            }
+        }
+
         <hr />
         <h4>Chat</h4>
         <label>Nome para exibir</label>
@@ -113,6 +126,7 @@ else
     List<ChatMessageDto> messages = new();
     List<JoinRequest> joinRequests = new();
     List<CampaignMember> members = new();
+    List<CharacterSheetDto> characters = new();
     string message = string.Empty;
     string displayName = string.Empty;
     string joinMessage = string.Empty;
@@ -157,6 +171,15 @@ else
                 if (messagesResponse.IsSuccessStatusCode)
                 {
                     messages = await messagesResponse.Content.ReadFromJsonAsync<List<ChatMessageDto>>() ?? new();
+                }
+
+                try
+                {
+                    characters = await Http.GetFromJsonAsync<List<CharacterSheetDto>>($"/api/campaigns/{id}/characters") ?? new();
+                }
+                catch
+                {
+                    characters = new();
                 }
 
                 if (isGm)

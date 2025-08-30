@@ -1,31 +1,57 @@
-@page "/characters/sheet"
+@page "/campaigns/{campaignId:guid}/characters/{characterId}"
+@attribute [Authorize]
+@inject HttpClient Http
+
 <h3>Ficha de Personagem</h3>
-<div class="rpg-sheet page">
-    <IdentificationSection Character="character" IsReadOnly="true" />
-    <AttributesSection Character="character" IsReadOnly="true" />
-    <SavingThrowsSection Character="character" IsReadOnly="true" />
-    <SkillsSection Character="character" IsReadOnly="true" />
-    <AttacksSection Character="character" IsReadOnly="true" />
-    <InventorySection Character="character" IsReadOnly="true" />
-    <DescriptionSection Character="character" IsReadOnly="true" />
-    <p>Percepção Passiva: @character.GetPassivePerception()</p>
-    <p>CD de Magia: @character.GetSpellSaveDC()</p>
-</div>
+
+@if (!loaded)
+{
+    <p>Carregando...</p>
+}
+else if (!string.IsNullOrEmpty(error))
+{
+    <p class="text-danger">@error</p>
+}
+else
+{
+    <div class="rpg-sheet page">
+        <IdentificationSection Character="character" IsReadOnly="true" />
+        <AttributesSection Character="character" IsReadOnly="true" />
+        <SavingThrowsSection Character="character" IsReadOnly="true" />
+        <SkillsSection Character="character" IsReadOnly="true" />
+        <AttacksSection Character="character" IsReadOnly="true" />
+        <InventorySection Character="character" IsReadOnly="true" />
+        <DescriptionSection Character="character" IsReadOnly="true" />
+        <p>Percepção Passiva: @character.GetPassivePerception()</p>
+        <p>CD de Magia: @character.GetSpellSaveDC()</p>
+    </div>
+}
 
 @code {
-    Character character = new()
+    [Parameter] public Guid campaignId { get; set; }
+    [Parameter] public Guid characterId { get; set; }
+
+    Character character = new();
+    bool loaded;
+    string? error;
+
+    protected override async Task OnInitializedAsync()
     {
-        Name = "Herói",
-        Race = "Humano",
-        Class = "Guerreiro",
-        Level = 1,
-        Alignment = "ND",
-        Background = "Um guerreiro corajoso.",
-        Str = 15,
-        Dex = 12,
-        Con = 14,
-        Int = 10,
-        Wis = 13,
-        Cha = 8
-    };
+        try
+        {
+            var sheet = await Http.GetFromJsonAsync<CharacterSheetDto>(
+                $"/api/campaigns/{campaignId}/characters/{characterId}");
+            if (sheet?.Character is not null)
+                character = sheet.Character;
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+        }
+        finally
+        {
+            loaded = true;
+        }
+    }
 }
+
