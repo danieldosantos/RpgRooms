@@ -71,6 +71,10 @@ public class CharacterService : ICharacterService
         existing.DeathSaves = character.DeathSaves;
         existing.Inspiration = character.Inspiration;
 
+        _db.SavingThrowProficiencies.RemoveRange(existing.SavingThrowProficiencies);
+        _db.SkillProficiencies.RemoveRange(existing.SkillProficiencies);
+        _db.Languages.RemoveRange(existing.Languages);
+        _db.Features.RemoveRange(existing.Features);
         existing.SavingThrowProficiencies.Clear();
         existing.SkillProficiencies.Clear();
         existing.Languages.Clear();
