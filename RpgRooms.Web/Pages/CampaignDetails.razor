@@ -90,7 +90,7 @@ else
             }
         }
 
-        <h4>Meus Personagens</h4>
+        <h4>@(isGm ? "Personagens" : "Meus Personagens")</h4>
         @if (characters.Count == 0)
         {
             <p>Nenhum personagem.</p>
@@ -99,7 +99,17 @@ else
         {
             @foreach (var c in characters)
             {
-                <div><a href="/campaigns/@id/characters/@c.Character.Id/edit">@c.Character.Name</a></div>
+                if (isGm)
+                {
+                    <div>
+                        <a href="/campaigns/@id/characters/@c.Character.Id">@c.Character.Name</a>
+                        <a href="/campaigns/@id/characters/@c.Character.Id/edit" style="margin-left:4px">Editar</a>
+                    </div>
+                }
+                else
+                {
+                    <div><a href="/campaigns/@id/characters/@c.Character.Id/edit">@c.Character.Name</a></div>
+                }
             }
         }
 

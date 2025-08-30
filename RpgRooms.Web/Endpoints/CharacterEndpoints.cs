@@ -15,9 +15,10 @@ public static class CharacterEndpoints
         g.MapGet("", async (Guid id, ICharacterService charSvc, ICampaignService campSvc, HttpContext http) =>
         {
             var userId = http.User.FindFirstValue(ClaimTypes.NameIdentifier)!;
-            if (!await campSvc.IsMemberAsync(id, userId) && !await campSvc.IsGmAsync(id, userId))
+            var isGm = await campSvc.IsGmAsync(id, userId);
+            if (!isGm && !await campSvc.IsMemberAsync(id, userId))
                 return Results.Forbid();
-            var list = await charSvc.GetCharactersAsync(id, userId);
+            var list = await charSvc.GetCharactersAsync(id, userId, isGm);
             return Results.Ok(list);
         });
 
