@@ -25,6 +25,8 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<SkillProficiency> SkillProficiencies => Set<SkillProficiency>();
     public DbSet<InventoryItem> InventoryItems => Set<InventoryItem>();
     public DbSet<Spell> Spells => Set<Spell>();
+    public DbSet<Language> Languages => Set<Language>();
+    public DbSet<Feature> Features => Set<Feature>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -64,5 +66,15 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
             .HasOne<Character>()
             .WithMany(c => c.Spells)
             .HasForeignKey(s => s.CharacterId);
+
+        b.Entity<Language>()
+            .HasOne<Character>()
+            .WithMany(c => c.Languages)
+            .HasForeignKey(l => l.CharacterId);
+
+        b.Entity<Feature>()
+            .HasOne<Character>()
+            .WithMany(c => c.Features)
+            .HasForeignKey(f => f.CharacterId);
     }
 }

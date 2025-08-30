@@ -1,0 +1,82 @@
+@using RpgRooms.Core.Domain.Entities
+<div class="rpg-section">
+  <h4>Combate</h4>
+  <div>
+    <label>Classe de Armadura:</label>
+    @if(!IsReadOnly)
+    {
+        <input type="number" class="rpg-input" @bind="Character.ArmorClass" />
+    }
+    else { <span>@Character.ArmorClass</span> }
+  </div>
+  <div>
+    <label>PV Atual:</label>
+    @if(!IsReadOnly)
+    {
+        <input type="number" class="rpg-input" @bind="Character.CurrentHP" />
+    }
+    else { <span>@Character.CurrentHP</span> }
+  </div>
+  <div>
+    <label>PV Máximo:</label>
+    @if(!IsReadOnly)
+    {
+        <input type="number" class="rpg-input" @bind="Character.MaxHP" />
+    }
+    else { <span>@Character.MaxHP</span> }
+  </div>
+  <div>
+    <label>PV Temporário:</label>
+    @if(!IsReadOnly)
+    {
+        <input type="number" class="rpg-input" @bind="Character.TemporaryHP" />
+    }
+    else { <span>@Character.TemporaryHP</span> }
+  </div>
+  <div>
+    <label>Iniciativa adicional:</label>
+    @if(!IsReadOnly)
+    {
+        <input type="number" class="rpg-input" @bind="Character.Initiative" />
+    }
+    else { <span>@Character.Initiative</span> }
+    <span>Total: @(Character.Initiative + Character.GetAbilityModifier("Dex"))</span>
+  </div>
+  <div>
+    <label>Velocidade:</label>
+    @if(!IsReadOnly)
+    {
+        <input type="number" class="rpg-input" @bind="Character.Speed" />
+    }
+    else { <span>@Character.Speed</span> }
+  </div>
+  <div>
+    <label>Dado de Vida:</label>
+    @if(!IsReadOnly)
+    {
+        <input class="rpg-input" @bind="Character.HitDice" />
+    }
+    else { <span>@Character.HitDice</span> }
+  </div>
+  <div>
+    <label>Salvaguardas de Morte:</label>
+    @if(!IsReadOnly)
+    {
+        <input type="number" class="rpg-input" @bind="Character.DeathSaves" />
+    }
+    else { <span>@Character.DeathSaves</span> }
+  </div>
+  <div>
+    <label>Inspiração:</label>
+    @if(!IsReadOnly)
+    {
+        <input type="checkbox" @bind="Character.Inspiration" />
+    }
+    else { <span>@(Character.Inspiration ? "Sim" : "Não")</span> }
+  </div>
+</div>
+
+@code {
+  [Parameter] public Character Character { get; set; } = default!;
+  [Parameter] public bool IsReadOnly { get; set; }
+}

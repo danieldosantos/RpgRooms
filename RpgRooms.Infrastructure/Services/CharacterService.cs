@@ -24,6 +24,10 @@ public class CharacterService : ICharacterService
             p.CharacterId = character.Id;
         foreach (var p in character.SkillProficiencies)
             p.CharacterId = character.Id;
+        foreach (var l in character.Languages)
+            l.CharacterId = character.Id;
+        foreach (var f in character.Features)
+            f.CharacterId = character.Id;
 
         _db.Characters.Add(character);
         await _db.SaveChangesAsync();
@@ -35,6 +39,8 @@ public class CharacterService : ICharacterService
         var existing = await _db.Characters
             .Include(c => c.SavingThrowProficiencies)
             .Include(c => c.SkillProficiencies)
+            .Include(c => c.Languages)
+            .Include(c => c.Features)
             .FirstOrDefaultAsync(c => c.Id == id)
             ?? throw new InvalidOperationException("Ficha não encontrada");
 
@@ -55,9 +61,20 @@ public class CharacterService : ICharacterService
         existing.Int = character.Int;
         existing.Wis = character.Wis;
         existing.Cha = character.Cha;
+        existing.ArmorClass = character.ArmorClass;
+        existing.CurrentHP = character.CurrentHP;
+        existing.MaxHP = character.MaxHP;
+        existing.TemporaryHP = character.TemporaryHP;
+        existing.Initiative = character.Initiative;
+        existing.Speed = character.Speed;
+        existing.HitDice = character.HitDice;
+        existing.DeathSaves = character.DeathSaves;
+        existing.Inspiration = character.Inspiration;
 
         existing.SavingThrowProficiencies.Clear();
         existing.SkillProficiencies.Clear();
+        existing.Languages.Clear();
+        existing.Features.Clear();
 
         existing.SavingThrowProficiencies.AddRange(
             character.SavingThrowProficiencies
@@ -69,6 +86,16 @@ public class CharacterService : ICharacterService
                 .Select(p => new SkillProficiency { CharacterId = existing.Id, Name = p.Name })
         );
 
+        existing.Languages.AddRange(
+            character.Languages
+                .Select(l => new Language { CharacterId = existing.Id, Name = l.Name })
+        );
+
+        existing.Features.AddRange(
+            character.Features
+                .Select(f => new Feature { CharacterId = existing.Id, Name = f.Name })
+        );
+
         await _db.SaveChangesAsync();
         return BuildSheet(existing);
     }
@@ -78,6 +105,8 @@ public class CharacterService : ICharacterService
         var c = await _db.Characters
             .Include(c => c.SavingThrowProficiencies)
             .Include(c => c.SkillProficiencies)
+            .Include(c => c.Languages)
+            .Include(c => c.Features)
             .FirstOrDefaultAsync(c => c.Id == id);
         return c is null ? null : BuildSheet(c);
     }
@@ -87,6 +116,8 @@ public class CharacterService : ICharacterService
         var query = _db.Characters
             .Include(c => c.SavingThrowProficiencies)
             .Include(c => c.SkillProficiencies)
+            .Include(c => c.Languages)
+            .Include(c => c.Features)
             .Where(c => c.CampaignId == campaignId);
 
         if (!isGm)
@@ -101,6 +132,8 @@ public class CharacterService : ICharacterService
         var existing = await _db.Characters
             .Include(c => c.SavingThrowProficiencies)
             .Include(c => c.SkillProficiencies)
+            .Include(c => c.Languages)
+            .Include(c => c.Features)
             .FirstOrDefaultAsync(c => c.Id == id)
             ?? throw new InvalidOperationException("Ficha não encontrada");
 
@@ -110,6 +143,8 @@ public class CharacterService : ICharacterService
 
         _db.SavingThrowProficiencies.RemoveRange(existing.SavingThrowProficiencies);
         _db.SkillProficiencies.RemoveRange(existing.SkillProficiencies);
+        _db.Languages.RemoveRange(existing.Languages);
+        _db.Features.RemoveRange(existing.Features);
         _db.Characters.Remove(existing);
         await _db.SaveChangesAsync();
     }
@@ -143,9 +178,29 @@ public class CharacterService : ICharacterService
         foreach (var name in skillNames)
             skills[name] = c.GetSkillValue(name);
 
-        var initiative = c.GetAbilityModifier("Dex");
+        var initiative = c.GetAbilityModifier("Dex") + c.Initiative;
         var spellDc = c.GetSpellSaveDC();
 
-        return new CharacterSheetDto(c, modifiers, savingThrows, skills, initiative, spellDc, proficiency);
+        var languages = c.Languages.Select(l => l.Name).ToList();
+        var features = c.Features.Select(f => f.Name).ToList();
+
+        return new CharacterSheetDto(
+            c,
+            modifiers,
+            savingThrows,
+            skills,
+            initiative,
+            spellDc,
+            proficiency,
+            c.ArmorClass,
+            c.CurrentHP,
+            c.MaxHP,
+            c.TemporaryHP,
+            c.Speed,
+            c.HitDice,
+            c.DeathSaves,
+            c.Inspiration,
+            languages,
+            features);
     }
 }

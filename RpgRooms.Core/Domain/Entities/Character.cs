@@ -31,6 +31,19 @@ public class Character
     public int Wis { get; set; }
     public int Cha { get; set; }
 
+    // Combat stats
+    public int ArmorClass { get; set; }
+    public int CurrentHP { get; set; }
+    public int MaxHP { get; set; }
+    public int TemporaryHP { get; set; }
+    // Extra initiative bonus besides Dex modifier
+    public int Initiative { get; set; }
+    public int Speed { get; set; }
+    [StringLength(20)]
+    public string? HitDice { get; set; }
+    public int DeathSaves { get; set; }
+    public bool Inspiration { get; set; }
+
     // Relationships
     public Guid CampaignId { get; set; }
     public string UserId { get; set; } = string.Empty;
@@ -40,6 +53,8 @@ public class Character
     public ICollection<SkillProficiency> SkillProficiencies { get; set; } = new List<SkillProficiency>();
     public ICollection<InventoryItem> Inventory { get; set; } = new List<InventoryItem>();
     public ICollection<Spell> Spells { get; set; } = new List<Spell>();
+    public ICollection<Language> Languages { get; set; } = new List<Language>();
+    public ICollection<Feature> Features { get; set; } = new List<Feature>();
 
     public int GetAbilityModifier(string ability)
     {
@@ -175,5 +190,21 @@ public class Spell
     public Guid Id { get; set; } = Guid.NewGuid();
     public Guid CharacterId { get; set; }
     [Required, StringLength(80)]
+    public string Name { get; set; } = string.Empty;
+}
+
+public class Language
+{
+    public Guid Id { get; set; } = Guid.NewGuid();
+    public Guid CharacterId { get; set; }
+    [Required, StringLength(80)]
+    public string Name { get; set; } = string.Empty;
+}
+
+public class Feature
+{
+    public Guid Id { get; set; } = Guid.NewGuid();
+    public Guid CharacterId { get; set; }
+    [Required, StringLength(120)]
     public string Name { get; set; } = string.Empty;
 }
