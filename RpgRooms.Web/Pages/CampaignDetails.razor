@@ -185,6 +185,17 @@ else
                     characters = new();
                 }
 
+                if (isMember && !isGm && characters.Count == 0)
+                {
+                    var res = await Http.PostAsJsonAsync($"/api/campaigns/{id}/characters", new Character());
+                    if (res.IsSuccessStatusCode)
+                    {
+                        var sheet = await res.Content.ReadFromJsonAsync<CharacterSheetDto>();
+                        Nav.NavigateTo($"/campaigns/{id}/characters/{sheet!.Character.Id}/edit", true);
+                        return;
+                    }
+                }
+
                 if (isGm)
                 {
                     try

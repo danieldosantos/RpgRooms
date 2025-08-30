@@ -128,7 +128,7 @@ public class CampaignRulesTests
     }
 
     [Fact]
-    public async Task AprovarJoinCriaCharacter()
+    public async Task AprovarJoinNaoCriaCharacter()
     {
         var opts = new DbContextOptionsBuilder<AppDbContext>().UseInMemoryDatabase("t9").Options;
         var db = new AppDbContext(opts);
@@ -137,7 +137,7 @@ public class CampaignRulesTests
         await svc.ToggleRecruitmentAsync(camp.Id, "gm");
         var req = await svc.CreateJoinRequestAsync(camp.Id, "p1", null);
         await svc.ApproveJoinRequestAsync(camp.Id, req.Id, "gm");
-        Assert.Equal(1, await db.Characters.CountAsync());
+        Assert.Equal(0, await db.Characters.CountAsync());
     }
 
     [Fact]
@@ -150,6 +150,8 @@ public class CampaignRulesTests
         await svc.ToggleRecruitmentAsync(camp.Id, "gm");
         var req = await svc.CreateJoinRequestAsync(camp.Id, "p1", null);
         await svc.ApproveJoinRequestAsync(camp.Id, req.Id, "gm");
+        var charSvc = new CharacterService(db);
+        await charSvc.CreateCharacterAsync(new Character { CampaignId = camp.Id, UserId = "p1", Name = "Hero" });
         await svc.LeaveCampaignAsync(camp.Id, "p1");
         await svc.HandleCharacterExitAsync(camp.Id, "p1", "gm", null);
         Assert.Equal(0, await db.Characters.CountAsync());
@@ -167,10 +169,11 @@ public class CampaignRulesTests
         await svc.ApproveJoinRequestAsync(camp.Id, req1.Id, "gm");
         var req2 = await svc.CreateJoinRequestAsync(camp.Id, "p2", null);
         await svc.ApproveJoinRequestAsync(camp.Id, req2.Id, "gm");
+        var charSvc = new CharacterService(db);
+        var sheet = await charSvc.CreateCharacterAsync(new Character { CampaignId = camp.Id, UserId = "p1", Name = "Hero" });
         await svc.LeaveCampaignAsync(camp.Id, "p1");
-        var character = await db.Characters.FirstAsync(c => c.UserId == "p1");
         await svc.HandleCharacterExitAsync(camp.Id, "p1", "gm", "p2");
-        var updated = await db.Characters.FirstAsync(c => c.Id == character.Id);
+        var updated = await db.Characters.FirstAsync(c => c.Id == sheet.Character.Id);
         Assert.Equal("p2", updated.UserId);
     }
 
