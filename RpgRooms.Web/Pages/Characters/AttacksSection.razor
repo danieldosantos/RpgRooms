@@ -1,4 +1,6 @@
 @using RpgRooms.Core.Domain.Entities
+@using RpgRooms.Core.Application.Services
+@inject IJSRuntime JS
 <div class="rpg-section">
   <h4>Ataques/Magias</h4>
   <ul>
@@ -7,6 +9,10 @@
         <li>@s.Name</li>
     }
   </ul>
+  <div>
+      <input class="rpg-input" @bind="rollExpr" placeholder="Rolagem (ex.: 1d20+STR+PB)" />
+      <button class="btn" @onclick="Roll">Roll</button>
+  </div>
   @if(!IsReadOnly)
   {
       <input class="rpg-input" @bind="newSpell" placeholder="Novo ataque ou magia" />
@@ -17,8 +23,11 @@
 @code {
   [Parameter] public Character Character { get; set; } = default!;
   [Parameter] public bool IsReadOnly { get; set; }
+  [Parameter] public Guid CampaignId { get; set; }
 
   string newSpell = string.Empty;
+  string rollExpr = string.Empty;
+
   void Add()
   {
       if(!string.IsNullOrWhiteSpace(newSpell))
@@ -26,5 +35,13 @@
           Character.Spells.Add(new Spell { Name = newSpell });
           newSpell = string.Empty;
       }
+  }
+
+  async Task Roll()
+  {
+      if (string.IsNullOrWhiteSpace(rollExpr)) return;
+      var result = DiceRoller.Roll(rollExpr, Character);
+      var message = $"{Character.Name} rola {rollExpr}: {result.Total} ({result.Detail})";
+      await JS.InvokeVoidAsync("chat.send", CampaignId.ToString(), Character.Name, message, true);
   }
 }

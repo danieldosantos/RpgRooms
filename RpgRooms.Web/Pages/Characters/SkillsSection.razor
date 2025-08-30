@@ -1,4 +1,5 @@
 @using RpgRooms.Core.Domain.Entities
+@using RpgRooms.Core.Application.Services
 @inject IJSRuntime JS
 <div class="rpg-section">
   <h4>Perícias</h4>
@@ -21,26 +22,26 @@
   [Parameter] public bool IsReadOnly { get; set; }
   [Parameter] public Guid CampaignId { get; set; }
 
-  record Skill(string Name, string Display);
+  record Skill(string Name, string Display, string Ability);
   Skill[] skills = new[] {
-      new Skill("Acrobatics","Acrobatics (DEX)"),
-      new Skill("Animal Handling","Animal Handling (WIS)"),
-      new Skill("Arcana","Arcana (INT)"),
-      new Skill("Athletics","Athletics (STR)"),
-      new Skill("Deception","Deception (CHA)"),
-      new Skill("History","History (INT)"),
-      new Skill("Insight","Insight (WIS)"),
-      new Skill("Intimidation","Intimidation (CHA)"),
-      new Skill("Investigation","Investigation (INT)"),
-      new Skill("Medicine","Medicine (WIS)"),
-      new Skill("Nature","Nature (INT)"),
-      new Skill("Perception","Perception (WIS)"),
-      new Skill("Performance","Performance (CHA)"),
-      new Skill("Persuasion","Persuasion (CHA)"),
-      new Skill("Religion","Religion (INT)"),
-      new Skill("Sleight of Hand","Sleight of Hand (DEX)"),
-      new Skill("Stealth","Stealth (DEX)"),
-      new Skill("Survival","Survival (WIS)")
+      new Skill("Acrobatics","Acrobatics (DEX)","DEX"),
+      new Skill("Animal Handling","Animal Handling (WIS)","WIS"),
+      new Skill("Arcana","Arcana (INT)","INT"),
+      new Skill("Athletics","Athletics (STR)","STR"),
+      new Skill("Deception","Deception (CHA)","CHA"),
+      new Skill("History","History (INT)","INT"),
+      new Skill("Insight","Insight (WIS)","WIS"),
+      new Skill("Intimidation","Intimidation (CHA)","CHA"),
+      new Skill("Investigation","Investigation (INT)","INT"),
+      new Skill("Medicine","Medicine (WIS)","WIS"),
+      new Skill("Nature","Nature (INT)","INT"),
+      new Skill("Perception","Perception (WIS)","WIS"),
+      new Skill("Performance","Performance (CHA)","CHA"),
+      new Skill("Persuasion","Persuasion (CHA)","CHA"),
+      new Skill("Religion","Religion (INT)","INT"),
+      new Skill("Sleight of Hand","Sleight of Hand (DEX)","DEX"),
+      new Skill("Stealth","Stealth (DEX)","DEX"),
+      new Skill("Survival","Survival (WIS)","WIS")
   };
   void Toggle(string name, bool value)
   {
@@ -51,9 +52,11 @@
 
   async Task RollSkill(Skill skill)
   {
-      var d20 = Random.Shared.Next(1, 21);
-      var result = d20 + Character.GetSkillValue(skill.Name);
-      var message = $"{Character.Name} testa {skill.Display}: {result}";
+      var expr = $"1d20 + {skill.Ability}";
+      if (Character.SkillProficiencies.Any(p => p.Name == skill.Name))
+          expr += " + PB";
+      var result = DiceRoller.Roll(expr, Character);
+      var message = $"{Character.Name} testa {skill.Display}: {result.Total} ({result.Detail})";
       await JS.InvokeVoidAsync("chat.send", CampaignId.ToString(), Character.Name, message, true);
   }
 }
