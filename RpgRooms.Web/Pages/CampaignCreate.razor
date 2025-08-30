@@ -13,7 +13,9 @@
     <label>Descrição</label>
     <textarea @bind="description" maxlength="1000"></textarea>
 </div>
-<button class="btn" @onclick="Create">Criar</button>
+<button class="btn" @onclick="Create" disabled="@isSubmitting">
+    @(isSubmitting ? "Criando..." : "Criar")
+</button>
 
 @if (!string.IsNullOrEmpty(error))
 {
@@ -24,9 +26,11 @@
     string name = string.Empty;
     string? description;
     string? error;
+    bool isSubmitting;
 
     async Task Create()
     {
+        isSubmitting = true;
         try
         {
             var res = await Http.PostAsJsonAsync("/api/campaigns", new { Name = name, Description = description });
@@ -37,6 +41,10 @@
         catch (Exception ex)
         {
             error = ex.Message;
+        }
+        finally
+        {
+            isSubmitting = false;
         }
     }
 }
