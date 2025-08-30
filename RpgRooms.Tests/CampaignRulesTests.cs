@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using RpgRooms.Infrastructure.Services;
 using RpgRooms.Infrastructure.Data;
 using RpgRooms.Core.Domain.Enums;
+using RpgRooms.Core.Domain.Entities;
 using Xunit;
 
 public class CampaignRulesTests
@@ -171,5 +172,33 @@ public class CampaignRulesTests
         await svc.HandleCharacterExitAsync(camp.Id, "p1", "gm", "p2");
         var updated = await db.Characters.FirstAsync(c => c.Id == character.Id);
         Assert.Equal("p2", updated.UserId);
+    }
+
+    [Fact]
+    public async Task SetMemberCharacterAtualizaNome()
+    {
+        var opts = new DbContextOptionsBuilder<AppDbContext>().UseInMemoryDatabase("t12").Options;
+        var db = new AppDbContext(opts);
+        var svc = new CampaignService(db);
+        var camp = await svc.CreateCampaignAsync("gm", "A", null);
+        db.CampaignMembers.Add(new() { CampaignId = camp.Id, UserId = "p1" });
+        var ch = new Character
+        {
+            CampaignId = camp.Id,
+            UserId = "p1",
+            Name = "Hero",
+            Level = 1,
+            Str = 10,
+            Dex = 10,
+            Con = 10,
+            Int = 10,
+            Wis = 10,
+            Cha = 10
+        };
+        db.Characters.Add(ch);
+        await db.SaveChangesAsync();
+        await svc.SetMemberCharacterAsync(camp.Id, "p1", ch.Id, "gm");
+        var member = await db.CampaignMembers.FirstAsync(m => m.CampaignId == camp.Id && m.UserId == "p1");
+        Assert.Equal("Hero", member.CharacterName);
     }
 }
